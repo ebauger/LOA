@@ -13,7 +13,7 @@ public class Main {
 				"00000001" +
 				"00000000" +
 				"00000000" +
-				"00000000" +
+				"00010000" +
 				"00000000");
 		grid.printBits();
 		System.out.println(grid.isConnected());

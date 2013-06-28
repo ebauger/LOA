@@ -1,7 +1,10 @@
 package main;
 
+import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.List;
 
 public class Grid {
 
@@ -75,4 +78,23 @@ public class Grid {
 		System.out.println(Long.toBinaryString(mPions));
 		
 	}
+
+	/**
+	 * 
+	 * @param pions
+	 * @return
+	 * 	the List of possible move
+	 */
+	public List<Long> generatePossibleMvt(long pions)
+	{
+		List<Long> possMvt = new ArrayList<>();
+		
+		//parcour chaque bits (boucle de 64)
+		//+ condition si 1L<<i et pions != 0
+		
+		
+		return possMvt;
+		
+	}
+	
 }

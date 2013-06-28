@@ -13,13 +13,19 @@ public class Grid {
 	
 	
 	
-	public Grid(String str){
+	public Grid(String pions){
 		int offset = 0;
-		for (char c : str.toCharArray()) {
-			if(c != '0')
+		for (char c : pions.toCharArray()) {
+			if(c == '1')
 				mPions |= (long)1<<63-offset;
+			if(c == '2')
+				mPionsAdv |= (long)1<<63-offset;
 			++offset;
+			
 		}
+		
+	
+		
 		MASK = new HashMap<Integer, Long>();
 		for(int i = 0; i < 64; ++i){
 			if(i%8 == 0){ //bord de droite
@@ -72,7 +78,22 @@ public class Grid {
 	}
 	
 	public void printBits(){
+		int i = Long.numberOfLeadingZeros(mPions);
+		//System.out.println(i);
+		while(i-- > 0){
+			System.out.print("0");
+		}
 		System.out.println(Long.toBinaryString(mPions));
+		i = Long.numberOfLeadingZeros(mPionsAdv);
+		//System.out.println(i);
+		while(i-- > 0){
+			System.out.print("0");
+		}
+		System.out.println(Long.toBinaryString(mPionsAdv));
+		
+	}
+	
+	public void printGrid(){
 		
 	}
 }

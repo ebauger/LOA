@@ -8,13 +8,13 @@ public class Main {
 	public static void main(String[] args) {
 		Grid grid = new Grid(
 				"10011100" +
-				"01100010" +
-				"00000010" +
-				"00000001" +
+				"01120010" +
+				"00000012" +
+				"00022001" +
 				"00000000" +
+				"00022000" +
 				"00000000" +
-				"00000000" +
-				"00000000");
+				"00000002");
 		grid.printBits();
 		System.out.println(grid.isConnected());
 

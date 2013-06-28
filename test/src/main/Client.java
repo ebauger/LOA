@@ -4,7 +4,7 @@ import java.io.*;
 import java.net.*;
 
 
-class Client {
+class Client{
 	public static void main(String[] args) {
          
 	Socket MyClient;
@@ -21,57 +21,17 @@ class Client {
 		   	
             cmd = (char)input.read();
             		
-            // Début de la partie en joueur blanc
+            // DÃ©but de la partie en joueur blanc
             if(cmd == '1'){
-                byte[] aBuffer = new byte[1024];
-				
-				int size = input.available();
-				//System.out.println("size " + size);
-				input.read(aBuffer,0,size);
-                String s = new String(aBuffer).trim();
-                String[] boardValues;
-                boardValues = s.split(" ");
-                int x=0,y=0;
-                for(int i=0; i<boardValues.length;i++){
-                    board[x][y] = Integer.parseInt(boardValues[i]);
-                    x++;
-                    if(x == 8){
-                        x = 0;
-                        y++;
-                    }
-                }
-
-                System.out.println("Nouvelle partie! Vous jouer blanc, entrez votre premier coup : ");
-                String move = null;
-                move = console.readLine();
-				output.write(move.getBytes(),0,move.length());
-				output.flush();
+            	startGameWith(cmd, input, output, console);
             }
-            // Début de la partie en joueur Noir
+            // DÃ©but de la partie en joueur Noir
             if(cmd == '2'){
-                System.out.println("Nouvelle partie! Vous jouer noir, attendez le coup des blancs");
-                byte[] aBuffer = new byte[1024];
-				
-				int size = input.available();
-				//System.out.println("size " + size);
-				input.read(aBuffer,0,size);
-                String s = new String(aBuffer).trim();
-                String[] boardValues;
-                boardValues = s.split(" ");
-                int x=0,y=0;
-                for(int i=0; i<boardValues.length;i++){
-                    board[x][y] = Integer.parseInt(boardValues[i]);
-                    x++;
-                    if(x == 8){
-                        x = 0;
-                        y++;
-                    }
-                }
+            	startGameWith(cmd, input, output, console);
             }
-
 
 			// Le serveur demande le prochain coup
-			// Le message contient aussi le dernier coup joué.
+			// Le message contient aussi le dernier coup jouÃ©.
 			if(cmd == '3'){
 				byte[] aBuffer = new byte[16];
 				
@@ -90,7 +50,7 @@ class Client {
 			}
 			// Le dernier coup est invalide
 			if(cmd == '4'){
-				System.out.println("Coup invalide, entrez un nouveau coup : ");
+				System.err.println("Coup invalide, entrez un nouveau coup : ");
 		       	String move = null;
 				move = console.readLine();
 				output.write(move.getBytes(),0,move.length());
@@ -104,4 +64,36 @@ class Client {
 	}
 	
     }
+	
+	public static void startGameWith(char cmd, BufferedInputStream input, BufferedOutputStream output, BufferedReader console){ 
+
+		byte[] aBuffer = new byte[1024];
+		
+		int size = input.available();
+		//System.out.println("size " + size);
+		input.read(aBuffer,0,size);
+        String s = new String(aBuffer).trim();
+        String[] boardValues;
+        boardValues = s.split(" ");
+        int x=0,y=0;
+        for(int i=0; i<boardValues.length;i++){
+            board[x][y] = Integer.parseInt(boardValues[i]);
+            x++;
+            if(x == 8){
+                x = 0;
+                y++;
+            }
+        }
+        if(cmd=='1')
+            System.out.println("Nouvelle partie! Vous jouez blanc, entrez votre premier coup : ");
+
+        if(cmd=='2')
+        	System.out.println("Nouvelle partie! Vous jouez noir, entrez votre premier coup : ");
+        
+        String move = null;
+        move = console.readLine();
+		output.write(move.getBytes(),0,move.length());
+		output.flush();
+	}
+	
 }

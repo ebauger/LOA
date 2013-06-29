@@ -18,6 +18,15 @@ public class Main {
 		grid.printBits();
 		System.out.println(grid.isConnected());
 
+		
+		for (long l : grid.generatePossibleMvt(grid.getmPions())) 
+			{
+				System.out.println(Long.toBinaryString((long)1<<63 | l));
+			}
+			
+			System.out.println();
+			
+			grid.init();
 	}
 
 }

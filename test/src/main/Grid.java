@@ -10,10 +10,13 @@ public class Grid {
 
 	private static Map<Integer,Long> MASK;
 	
+	private static Map<Byte,Integer> MASK_NB_BITS;
+	
 	private long mPions = 0;
 	private long mPionsAdv = 0;
 	
-	
+	byte[][] mOrth = new byte[2][8];
+	byte[][] mVert = new byte[2][15];
 	
 	
 	public Grid(String str){
@@ -35,7 +38,14 @@ public class Grid {
 				
 		}
 			
-		MASK.put(64, (long)1<<63 | 1 << 1);
+		//MASK.put(64, (long)1<<63 | 1 << 1);
+		
+		MASK_NB_BITS = new HashMap<Byte, Integer>(256);
+		for (int i = 0; i < 256; ++i) 
+		{
+			MASK_NB_BITS.put((byte) i, Integer.bitCount(i));
+			System.out.println(Integer.toBinaryString(i)+" : " + MASK_NB_BITS.get((byte)i) );
+		}
 	}
 	
 	
@@ -91,9 +101,43 @@ public class Grid {
 		
 		//parcour chaque bits (boucle de 64)
 		//+ condition si 1L<<i et pions != 0
-		
+
+				
+		for (int i = 63; i >=0 ; --i) {
+			
+			long maskPion = 1L << i;
+			
+			if((maskPion & pions)  != 0)
+			{
+				
+				
+				
+				possMvt.add(maskPion);
+			}
+		}
 		
 		return possMvt;
+		
+	}
+	
+	public long getmPions() {
+		return mPions;
+	}
+	
+	public void init()
+	{
+		
+		long completeGrid = mPions | mPionsAdv;
+		System.out.println(Long.toBinaryString(completeGrid));
+		
+		for (int i = 7; i >=0; --i) {
+			System.out.println(Long.toBinaryString((long)1<<63 |((completeGrid & (255L << i*8))>>>i*8)));
+		}
+	}
+	
+	
+	public void update(long move)
+	{
 		
 	}
 	

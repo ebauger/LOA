@@ -7,26 +7,27 @@ public class Main {
 	 */
 	public static void main(String[] args) {
 		Grid grid = new Grid(
-				"10011100" +
+				"12211100" +
 				"01100010" +
 				"00000010" +
-				"00000001" +
+				"00020021" +
 				"00000000" +
 				"00000000" +
-				"00010000" +
+				"00010020" +
 				"00000000");
 		grid.printBits();
-		System.out.println(grid.isConnected());
-
 		
-		for (long l : grid.generatePossibleMvt(grid.getmPions())) 
-			{
-				System.out.println(Long.toBinaryString((long)1<<63 | l));
-			}
-			
-			System.out.println();
-			
-			grid.init();
+//		System.out.println(grid.isConnected());
+//
+//		
+//		for (long l : grid.generatePossibleMvt(grid.getmPions())) 
+//			{
+//				System.out.println(Long.toBinaryString((long)1<<63 | l));
+//			}
+//			
+//			System.out.println();
+//			
+//			grid.init();
 	}
 
 }

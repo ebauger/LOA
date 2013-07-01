@@ -133,20 +133,19 @@ public class Grid {
 		
 		System.out.println(Long.toBinaryString(mPions));
 		
-//		System.out.println(Long.toBinaryString(1L<<24|1L<<31| 1L<<63));
-//		System.out.println(Long.toBinaryString(MASK_MOVEMENT.get(1L<<24|1L<<31)| 1L<<63));
-//		System.out.println();
-//		
-//		System.out.println(Long.toBinaryString(1L<<5|1L<<1| 1L<<63));
-//		System.out.println(Long.toBinaryString(MASK_MOVEMENT.get(1L<<5|1L<<1)| 1L<<63));
-//		System.out.println();
-//		
-//		System.out.println(Long.toBinaryString(1L<<27|1L<<43| 1L<<63));
-//		System.out.println(Long.toBinaryString(MASK_MOVEMENT.get(1L<<27|1L<<43)| 1L<<63));
-//		System.out.println();
-//		
-//		System.out.println(Long.toBinaryString(1L<<26|1L<<2| 1L<<63));
-//		System.out.println(Long.toBinaryString(MASK_MOVEMENT.get(1L<<26|1L<<2)| 1L<<63));
+		/*System.out.println(Long.toBinaryString(1L<<24|1L<<31| 1L<<63));
+		System.out.println(Long.toBinaryString(MASK_MOVEMENT.get(1L<<24|1L<<31)| 1L<<63));
+		System.out.println();
+		
+		System.out.println(Long.toBinaryString(1L<<5|1L<<1| 1L<<63));
+		System.out.println(Long.toBinaryString(MASK_MOVEMENT.get(1L<<5|1L<<1)| 1L<<63));
+		System.out.println();
+		
+		System.out.println(Long.toBinaryString(1L<<27|1L<<43| 1L<<63));
+		System.out.println(Long.toBinaryString(MASK_MOVEMENT.get(1L<<27|1L<<43)| 1L<<63));
+		System.out.println();				
+		System.out.println(Long.toBinaryString(1L<<26|1L<<2| 1L<<63));
+		System.out.println(Long.toBinaryString(MASK_MOVEMENT.get(1L<<26|1L<<2)| 1L<<63));*/
 		
 System.out.println();
 		
@@ -157,6 +156,16 @@ System.out.println();
 		
 		System.out.println(Long.toBinaryString(1L<<27|1L<<41| 1L<<63));
 		System.out.println(Long.toBinaryString(MASK_MOVEMENT.get(1L<<27|1L<<41)| 1L<<63));
+		
+System.out.println();
+		
+		System.out.println(Long.toBinaryString(1L<<5|1L<<23| 1L<<63));
+		System.out.println(Long.toBinaryString(MASK_MOVEMENT.get(1L<<5|1L<<23)| 1L<<63));
+		
+System.out.println();
+		
+		System.out.println(Long.toBinaryString(1L<<16|1L<<61| 1L<<63));
+		System.out.println(Long.toBinaryString(MASK_MOVEMENT.get(1L<<16|1L<<61)| 1L<<63));
 		
 //		System.out.println("lines");
 //		for(int i = 0; i<8; ++i){
@@ -194,7 +203,7 @@ System.out.println();
 	 */
 	public List<Long> generatePossibleMvt(long pions)
 	{
-		List<Long> possMvt = new ArrayList<>();
+		List<Long> possMvt = new ArrayList<Long>();
 		
 		//parcour chaque bits (boucle de 64)
 		//+ condition si 1L<<i et pions != 0
@@ -286,7 +295,7 @@ System.out.println();
 			int end = 0;
 			
 			//masques de lignes
-			for(int i = 0; i < 8; ++i){
+			for(int i = x+1; i < 8; ++i){
 				if(i != x){
 					end = y*8 + i;
 					key = 1L<<dep| 1L<<end;
@@ -299,7 +308,7 @@ System.out.println();
 			}
 			
 			//masques de colonnes
-			for(int i = 0; i < 8; ++i){
+			for(int i = y+1; i < 8; ++i){
 				if(i != y ){
 					end = x + i*8;
 					key = 1L<<dep| 1L<<end;
@@ -321,24 +330,47 @@ System.out.println();
 			
 			
 			//masques de diagonales droites /
-			for(int i = 0; i < 8-Math.abs(x+y-7); ++i){
-				if(i != y | i !=x){
-					end = (dep)%7 + i*8;
-					System.out.println("x="+x+" y="+y+ " dep="+dep+" end="+end);
+			/*for(int i = 0; i < 8-Math.abs(x+y-7); ++i){
+				//if(i != y || i !=x){
+					//end = (7-i)+(7-x+i)*8;//(dep)%7 + i*8;
+					int endX =(7-i);
+					int endY =(7-x+i);
+					if(x != endX || y != endY){
+						end = (7-i)+(7-x+i)*8;
+					//System.out.println("x="+x+" y="+y+ " dep="+dep+" end="+end);
 					key = 1L<<dep| 1L<<end;
 					value = 0;
-					if(i<y){
-						for(int idx = i+1; idx<y; ++idx  ){
-							value |= 1L<<idx*8+x+i;
+					if(endY<y){
+						for(int idx = 0; idx<y-endY-1; ++idx  ){
+							value |= 1L<<endX+i+(endY+i)*8;
 						}
 					}else{
-						for(int idx = y+1; idx<i; ++idx  ){
-							value |= 1L<<idx*8+x-i;
+						for(int idx = 0; idx<8-y-1; ++idx  ){
+							value |= 1L<<endX+i+(endY+i)*8;
 						}
 					}
 					MASK_MOVEMENT.put(key, value);
-					
+					}
+				//}
+			}*/
+			
+			int endX = x-1; int endY = y + 1;
+			while(endX >= 0 && endY <= 8){
+				end = endX + endY*8;
+				key = 1L<<dep| 1L<<end;
+				value = 0;
+				int interX = x-1; int interY = y + 1;
+				while(interX > endX && interY < endY){
+					value  |= 1L<<(interX+interY*8);
+					--interX; ++interY;
 				}
+				MASK_MOVEMENT.put(key, value);
+				/*if(key == (1L<<28|1L<<56)){
+					
+				}*/
+				//System.out.println("x="+x+" y="+y+ " dep="+dep+" end="+end);
+				--endX;
+				++endY;
 			}
 			
 			//masques de diagonales gauche \
@@ -360,6 +392,25 @@ System.out.println();
 //					
 //				}
 //			}
+			endX = x+1; endY = y + 1;
+			while(endX <= 8 && endY <= 8){
+				end = endX + endY*8;
+				key = 1L<<dep| 1L<<end;
+				value = 0;
+				int interX = x+1; int interY = y + 1;
+				while(interX < endX && interY < endY){
+					value  |= 1L<<(interX+interY*8);
+					++interX; ++interY;
+				}
+				MASK_MOVEMENT.put(key, value);
+				/*if(key == (1L<<28|1L<<56)){
+					
+				}*/
+				//System.out.println("x="+x+" y="+y+ " dep="+dep+" end="+end);
+				++endX;
+				++endY;
+			}
+			
 		}
 		
 //		mLinesOfActon = new byte[64][4];

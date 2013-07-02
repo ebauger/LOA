@@ -1,5 +1,7 @@
 package main;
 
+import java.util.ArrayList;
+
 public class Main {
 
 	/**
@@ -28,6 +30,11 @@ public class Main {
 //			System.out.println();
 //			
 //			grid.init();
+		ArrayList<Long> mvts = grid.generatePossibleMvt();
+		System.out.println("1000000010000000100000001000000010000000100000001000000010000000");
+		for(Long mvt: mvts){
+			grid.printBits(mvt);
+		}
 	}
 
 }

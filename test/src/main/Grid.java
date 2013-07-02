@@ -1,18 +1,17 @@
 package main;
 
 import java.util.ArrayList;
-import java.util.BitSet;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
 
-import javax.sql.PooledConnection;
 
 public class Grid {
 
 	private static Map<Integer,Long> MASK;
 	
-//	private static Map<Byte,Integer> MASK_NB_BITS;
+
 	
 	private long mPions = 0;
 	private long mPionsAdv = 0;
@@ -22,9 +21,8 @@ public class Grid {
 	private static final int DIAGONAL_RIGHT = 2;  // '/'
 	private static final int DIAGONAL_LEFT = 3; // '\'
 	
-	//byte[][] mOrthogonals  = {{0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0}};
-	//byte[][] mDiagonals = {{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}};
-	byte[][] mLinesOfActon;
+
+	//byte[][] mLinesOfActon;
 	private static final Map<Integer, ReferencedByte> LOA_LIGNES = new HashMap<Integer, ReferencedByte>(64);
 	private static final Map<Integer, ReferencedByte> LOA_COLUMNS = new HashMap<Integer, ReferencedByte>(64);
 	private static final Map<Integer, ReferencedByte> LOA_DIAGONAL_RIGHT = new HashMap<Integer, ReferencedByte>(64);
@@ -39,14 +37,6 @@ public class Grid {
 		for (char c : str.toCharArray()) {
 			if(c == '1'){
 				mPions |= (long)1<<63-offset;
-//				++mOrthogonals[LINES][(63-offset)/8]; 
-//				++mOrthogonals[COLUMNS][(63-offset)%8];
-//				++mDiagonals[DIAGONAL_RIGHT][((63-offset)/8) + ((63-offset)%8)];
-//				++mDiagonals[DIAGONAL_LEFT][((63-offset)/8) + (7-((63-offset)%8))];
-//				++mLinesOfActon[63-offset][LINES];
-//				++mLinesOfActon[63-offset][COLUMNS];
-//				++mLinesOfActon[63-offset][DIAGONAL_RIGHT];
-//				++mLinesOfActon[63-offset][DIAGONAL_LEFT];
 				++LOA_LIGNES.get(63-offset).value;
 				++LOA_COLUMNS.get(63-offset).value;
 				++LOA_DIAGONAL_RIGHT.get(63-offset).value;
@@ -59,10 +49,6 @@ public class Grid {
 			else if(c == '2')
 			{
 				mPionsAdv  |= (long)1<<63-offset;
-//				++mOrthogonals[LINES][(63-offset)/8]; 
-//				++mOrthogonals[COLUMNS][(63-offset)%8];		
-//				++mDiagonals[DIAGONAL_RIGHT][((63-offset)/8) + ((63-offset)%8)];
-//				++mDiagonals[DIAGONAL_LEFT][((63-offset)/8) + (7-((63-offset)%8))];
 				++LOA_LIGNES.get(63-offset).value;
 				++LOA_COLUMNS.get(63-offset).value;
 				++LOA_DIAGONAL_RIGHT.get(63-offset).value;
@@ -83,14 +69,18 @@ public class Grid {
 				
 		}
 			
-		//MASK.put(64, (long)1<<63 | 1 << 1);
+	
+	}
+	
+	public void printBits(Long arrayBits){
+		int i = Long.numberOfLeadingZeros(arrayBits);
 		
-//		MASK_NB_BITS = new HashMap<Byte, Integer>(256);
-//		for (int i = 0; i < 256; ++i) 
-//		{
-//			MASK_NB_BITS.put((byte) i, Integer.bitCount(i));
-//			System.out.println(Integer.toBinaryString(i)+" : " + MASK_NB_BITS.get((byte)i) );
-//		}
+		while(i-- > 0){
+			System.out.print("0");
+		}
+		System.out.println(Long.toBinaryString(arrayBits));
+		
+
 	}
 	
 	
@@ -133,6 +123,7 @@ public class Grid {
 		
 		System.out.println(Long.toBinaryString(mPions));
 		
+		//printBits(1L<<24|1L<<31)
 		/*System.out.println(Long.toBinaryString(1L<<24|1L<<31| 1L<<63));
 		System.out.println(Long.toBinaryString(MASK_MOVEMENT.get(1L<<24|1L<<31)| 1L<<63));
 		System.out.println();
@@ -147,7 +138,7 @@ public class Grid {
 		System.out.println(Long.toBinaryString(1L<<26|1L<<2| 1L<<63));
 		System.out.println(Long.toBinaryString(MASK_MOVEMENT.get(1L<<26|1L<<2)| 1L<<63));*/
 		
-System.out.println();
+/*System.out.println();
 		
 		System.out.println(Long.toBinaryString(1L<<28|1L<<56| 1L<<63));
 		System.out.println(Long.toBinaryString(MASK_MOVEMENT.get(1L<<28|1L<<56)| 1L<<63));
@@ -167,31 +158,9 @@ System.out.println();
 		System.out.println(Long.toBinaryString(1L<<16|1L<<61| 1L<<63));
 		System.out.println(Long.toBinaryString(MASK_MOVEMENT.get(1L<<16|1L<<61)| 1L<<63));
 		
-//		System.out.println("lines");
-//		for(int i = 0; i<8; ++i){
-//			System.out.print(mOrthogonals[LINES][i]);
-//		}
-//		
-//		System.out.println();
-//		System.out.println("COLUMNS");
-//		
-//		for(int i = 0; i<8; ++i){
-//			System.out.print(mOrthogonals[COLUMNS][i]);
-//		}
-//		
-//		
-//		System.out.println();
-//		System.out.println("DIAG /");
-//		for(int i = 0; i<15; ++i){
-//			System.out.print(mDiagonals[DIAGONAL_RIGHT][i]);
-//		}
-//		
-//		System.out.println();
-//		System.out.println("DIAG \\");
-//		
-//		for(int i = 0; i<15; ++i){
-//			System.out.print(mDiagonals[DIAGONAL_LEFT][i]);
-//		}
+System.out.println(MASK_MOVEMENT.size());*/		
+		
+
 		
 	}
 
@@ -199,11 +168,11 @@ System.out.println();
 	 * 
 	 * @param pions
 	 * @return
-	 * 	the List of possible move
+	 * 	the List of possible moves
 	 */
-	public List<Long> generatePossibleMvt(long pions)
+	public ArrayList<Long> generatePossibleMvt()
 	{
-		List<Long> possMvt = new ArrayList<Long>();
+		ArrayList<Long> possMvt = new ArrayList<Long>();
 		
 		//parcour chaque bits (boucle de 64)
 		//+ condition si 1L<<i et pions != 0
@@ -213,39 +182,107 @@ System.out.println();
 			
 			//long postionPion = 1L << i;
 			
-			long move;
-			if((1L << i & pions)  != 0)
+			//long move;
+			if((1L << i & mPions)  != 0)
 			{
 				
-				
+				int currentY = i/8; 
+				int currentX = i%8;
 				int position;
 //				//lignes
 //				//à droite
 				position = i-LOA_LIGNES.get(i).value;
-				if(position > 0){ //on dépasse pas
-					
+				if(position >= currentY*8){ //on dépasse pas
+					if((mPions & (1L << position)) == 0){
+					//	System.out.println(i+" to "+position);
+						if((mPionsAdv & MASK_MOVEMENT.get(1L<<i | 1L << position)) == 0){
+							possMvt.add(1L<<i | 1L << position);
+						}
+					}
 				}
 				
 				// à gauche
 				position = i+LOA_LIGNES.get(i).value;
-				if(position < 8){
-					
+				if(position < currentY*8+8){
+					if((mPions & (1L << position)) == 0){
+						if((mPionsAdv & MASK_MOVEMENT.get(1L<<i | 1L << position)) == 0){
+							possMvt.add(1L<<i | 1L << position);
+						}
+					}
 				}
 				
 				
-//				int position = 0;
-//				position = i%8 - mOrthogonals[LINES][i/8];
-//				if(position > 0 ){
-//					long mvt = 1 << position;
-//					if((pions & mvt) == 0){
-//						i-1
-//					}
-//				}
-//				// à gauche
-//				if(i%8 + mOrthogonals[LINES][i/8] < 8 ){
-//					
-//				}
+				//le long de la colonne
+				//en haut
+				position = i+LOA_COLUMNS.get(i).value*8;
+				if(position < 64){
+					if((mPions & (1L << position)) == 0){
+						if((mPionsAdv & MASK_MOVEMENT.get(1L<<i | 1L << position)) == 0){
+							possMvt.add(1L<<i | 1L << position);
+						}
+					}
+				}
+				//en bas
+				position = i-LOA_COLUMNS.get(i).value*8;
+				if(position >=0 ){
+					if((mPions & (1L << position)) == 0){
+						if((mPionsAdv & MASK_MOVEMENT.get(1L<<i | 1L << position)) == 0){
+							possMvt.add(1L<<i | 1L << position);
+						}
+					}
+				}
 				
+				//diagonale droite '/'
+				//en haut droite
+				int endX = currentX - LOA_DIAGONAL_RIGHT.get(i).value;
+				int endY = currentY + LOA_DIAGONAL_RIGHT.get(i).value;
+				if(endX >=0 && endY < 8){
+					position = endY*8 + endX;
+					if((mPions & (1L << position)) == 0){
+						if((mPionsAdv & MASK_MOVEMENT.get(1L<<i | 1L << position)) == 0){
+							possMvt.add(1L<<i | 1L << position);
+						}
+					}
+				}
+				
+				//en bas gauche
+				 endX = currentX + LOA_DIAGONAL_RIGHT.get(i).value;
+				 endY = currentY - LOA_DIAGONAL_RIGHT.get(i).value;
+				if(endX <8 && endY >= 0){
+					position = endY*8 + endX;
+					if((mPions & (1L << position)) == 0){
+						if((mPionsAdv & MASK_MOVEMENT.get(1L<<i | 1L << position)) == 0){
+							possMvt.add(1L<<i | 1L << position);
+						}
+					}
+				}
+				
+				//Diagonale gauche '\'
+				//en haut gauche
+				
+				 endX = currentX + LOA_DIAGONAL_RIGHT.get(i).value;
+				 endY = currentY + LOA_DIAGONAL_RIGHT.get(i).value;
+				if(endX <8 && endY < 8){
+					position = endY*8 + endX;
+					if((mPions & (1L << position)) == 0){
+						if((mPionsAdv & MASK_MOVEMENT.get(1L<<i | 1L << position)) == 0){
+							possMvt.add(1L<<i | 1L << position);
+						}
+					}
+				}
+				
+				//en bas droite
+				
+				 endX = currentX - LOA_DIAGONAL_RIGHT.get(i).value;
+				 endY = currentY - LOA_DIAGONAL_RIGHT.get(i).value;
+				if(endX >=0 && endY >=0){
+					position = endY*8 + endX;
+					if((mPions & (1L << position)) == 0){
+						if((mPionsAdv & MASK_MOVEMENT.get(1L<<i | 1L << position)) == 0){
+							possMvt.add(1L<<i | 1L << position);
+						}
+					}
+				}
 				
 				
 				
@@ -300,9 +337,6 @@ System.out.println();
 					end = y*8 + i;
 					key = 1L<<dep| 1L<<end;
 					value = (dep<end)?((1L<<end)-(1L<<dep)*2):((1L<<dep)-(1L<<end)*2);
-//					if((x ==7 || x==0) && y==3 )
-//					System.out.println("x="+x+" y="+y+ " dep="+dep+" end="+end +" "+Long.toBinaryString(((dep<end)?((1L<<end)-(1L<<(dep))):((1L<<dep)-(1L<<(2*end))))|1L<<63));
-//					
 					MASK_MOVEMENT.put(key, value);
 				}
 			}
@@ -330,30 +364,7 @@ System.out.println();
 			
 			
 			//masques de diagonales droites /
-			/*for(int i = 0; i < 8-Math.abs(x+y-7); ++i){
-				//if(i != y || i !=x){
-					//end = (7-i)+(7-x+i)*8;//(dep)%7 + i*8;
-					int endX =(7-i);
-					int endY =(7-x+i);
-					if(x != endX || y != endY){
-						end = (7-i)+(7-x+i)*8;
-					//System.out.println("x="+x+" y="+y+ " dep="+dep+" end="+end);
-					key = 1L<<dep| 1L<<end;
-					value = 0;
-					if(endY<y){
-						for(int idx = 0; idx<y-endY-1; ++idx  ){
-							value |= 1L<<endX+i+(endY+i)*8;
-						}
-					}else{
-						for(int idx = 0; idx<8-y-1; ++idx  ){
-							value |= 1L<<endX+i+(endY+i)*8;
-						}
-					}
-					MASK_MOVEMENT.put(key, value);
-					}
-				//}
-			}*/
-			
+		
 			int endX = x-1; int endY = y + 1;
 			while(endX >= 0 && endY <= 8){
 				end = endX + endY*8;
@@ -365,33 +376,13 @@ System.out.println();
 					--interX; ++interY;
 				}
 				MASK_MOVEMENT.put(key, value);
-				/*if(key == (1L<<28|1L<<56)){
-					
-				}*/
-				//System.out.println("x="+x+" y="+y+ " dep="+dep+" end="+end);
+				
 				--endX;
 				++endY;
 			}
 			
 			//masques de diagonales gauche \
-//			for(int i = 0; i < 8; ++i){
-//				if(i != y){
-//					end = x + i*8;
-//					key = 1L<<dep| 1L<<end;
-//					value = 0;
-//					if(i<y){
-//						for(int idx = i+1; idx<y; ++idx  ){
-//							value |= 1L<<idx*8+x-i;
-//						}
-//					}else{
-//						for(int idx = y+1; idx<i; ++idx  ){
-//							value |= 1L<<idx*8+x+i;
-//						}
-//					}
-//					MASK_MOVEMENT.put(key, value);
-//					
-//				}
-//			}
+
 			endX = x+1; endY = y + 1;
 			while(endX <= 8 && endY <= 8){
 				end = endX + endY*8;
@@ -403,32 +394,14 @@ System.out.println();
 					++interX; ++interY;
 				}
 				MASK_MOVEMENT.put(key, value);
-				/*if(key == (1L<<28|1L<<56)){
-					
-				}*/
-				//System.out.println("x="+x+" y="+y+ " dep="+dep+" end="+end);
+				
 				++endX;
 				++endY;
 			}
 			
 		}
 		
-//		mLinesOfActon = new byte[64][4];
-//		for(int i = 0; i<64; ++i){
-//			mLinesOfActon[i][LINES] = 0;
-//			mLinesOfActon[i][COLUMNS] = 0;
-//			mLinesOfActon[i][DIAGONAL_RIGHT] = 0;
-//			mLinesOfActon[i][DIAGONAL_LEFT] = 0;
-//		}
-		
-	
-		
-		/*long completeGrid = mPions | mPionsAdv;
-		System.out.println(Long.toBinaryString(completeGrid));
-		
-		for (int i = 7; i >=0; --i) {
-			System.out.println(Long.toBinaryString((long)1<<63 |((completeGrid & (255L << i*8))>>>i*8)));
-		}*/
+
 	}
 	
 	
@@ -436,6 +409,8 @@ System.out.println();
 	{
 		
 	}
+	
+	
 	
 	private class ReferencedByte{
 		private byte value = 0;

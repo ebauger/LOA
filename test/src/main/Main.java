@@ -3,6 +3,8 @@ package main;
 import java.util.ArrayList;
 
 public class Main {
+	
+	
 
 	/**
 	 * @param args
@@ -30,11 +32,18 @@ public class Main {
 //			System.out.println();
 //			
 //			grid.init();
-		ArrayList<Long> mvts = grid.generatePossibleMvt();
+		/*ArrayList<Long> mvts = grid.generatePossibleMvt();
 		System.out.println("1000000010000000100000001000000010000000100000001000000010000000");
 		for(Long mvt: mvts){
 			grid.printBits(mvt);
-		}
+		}*/
+		
+		//System.out.println(Long.MAX_VALUE | Long.MIN_VALUE);
+		grid.printGame();
+		grid.update(1L<<60 | 1L<<36);
+		grid.printGame();
 	}
+	
+	
 
 }

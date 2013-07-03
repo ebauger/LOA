@@ -68,6 +68,7 @@ public class Grid {
 			}
 				
 		}
+		
 			
 	
 	}
@@ -122,6 +123,9 @@ public class Grid {
 	public void printBits(){
 		
 		System.out.println(Long.toBinaryString(mPions));
+		
+		
+		
 		
 		//printBits(1L<<24|1L<<31)
 		/*System.out.println(Long.toBinaryString(1L<<24|1L<<31| 1L<<63));
@@ -403,11 +407,44 @@ System.out.println(MASK_MOVEMENT.size());*/
 		
 
 	}
-	
+	public void printGame(){
+		System.out.println("---------------------");
+		long totalPions = mPions | mPionsAdv;
+		for(int i = 63; i>=0; --i){
+			if((totalPions & (1l << i))==0){
+				System.out.print("[ ]");
+			}
+			else if((mPions & (1l << i))==0){
+				System.out.print("[x]");
+			}else {
+				System.out.print("[o]");
+			}
+			if(i%8 == 0){
+				System.out.println();
+			}
+		}
+	}
 	
 	public void update(long move)
 	{
+		long from = mPions & move;
+		long to = move^from;
+		updateLOAs(63-Long.numberOfLeadingZeros(from), 63-Long.numberOfLeadingZeros(to));
+		mPions ^= move;
+		mPionsAdv &= (-1L^to);
+	}
+	
+	public void updateLOAs(int from, int to){
+		System.out.println("from="+(63-Long.numberOfLeadingZeros(from)));
+		--LOA_LIGNES.get(from).value;
+		--LOA_COLUMNS.get(from).value;
+		--LOA_DIAGONAL_RIGHT.get(from).value;
+		--LOA_DIAGONAL_LEFT.get(from).value;
 		
+		++LOA_LIGNES.get(to).value;
+		++LOA_COLUMNS.get(to).value;
+		++LOA_DIAGONAL_RIGHT.get(to).value;
+		++LOA_DIAGONAL_LEFT.get(to).value;
 	}
 	
 	

@@ -31,6 +31,7 @@ private static Messages mMessages;
 		th1.start();
 		
 		
+		
 //		mClient = new Client(new Messages());
 //		Thread th2 = new Thread(mClient);
 //		

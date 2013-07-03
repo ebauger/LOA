@@ -1,5 +1,7 @@
 package main;
 
+import java.io.IOException;
+
 import javax.swing.plaf.SliderUI;
 
 public class Messages {
@@ -25,21 +27,18 @@ public class Messages {
 		Thread th = new Thread(mGrid);
 		th.start();
 		
-		new Thread(new Runnable() {
-			
-			@Override
-			public void run() {
-				try {
-					this.wait(1000);
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				
-			}
-		});
 		
-		System.out.println(mGrid.getBestMove());
+			  //do what you want to do before sleeping
+		try {
+			Thread.currentThread().sleep(1000);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}//sleep for 1000 ms
+			  //do what you want to do after sleeptig
+		
+		
+		//System.out.println(mGrid.getBestMove());
 		return mGrid.getBestMove();
 		
 		
@@ -53,11 +52,15 @@ public class Messages {
 		move = 1L << ('H'-(moveString.charAt(1))+(moveString.charAt(2)-'1')*8);		
 		move |= 1L << (('H'-moveString.charAt(6))+(moveString.charAt(7)-'1')*8);
 
-		mGrid.printBits(move);
+		//mGrid.printBits(move);
 		
 		
 		mGrid.coupAdvAndUpdate(move);
 		
 	}
+	
+	/*public void printlnLOAs(){
+		mGrid.pringLOAs();
+	}*/
 	
 }

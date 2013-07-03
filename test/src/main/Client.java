@@ -25,7 +25,7 @@ class Client implements Runnable {
 		Socket MyClient;
 		BufferedInputStream input;
 		BufferedOutputStream output;
-	    int[][] board = new int[8][8];
+	   // int[][] board = new int[8][8];
 		try {
 			MyClient = new Socket("localhost", 8888);
 		   	input    = new BufferedInputStream(MyClient.getInputStream());
@@ -110,6 +110,7 @@ class Client implements Runnable {
 				if(cmd == '4'){
 					System.out.println("Coup invalide, entrez un nouveau coup : ");
 			       	String move = null;
+			       	//mMessages.printlnLOAs();
 					move = console.readLine();
 					output.write(move.getBytes(),0,move.length());
 					output.flush();

@@ -40,7 +40,7 @@ public class Grid implements Runnable{
 			long pionsBlack = 0;
 			
 			for (char c : str.toCharArray()) {
-				if(c == '2'){
+				if(c == '4'){
 					pionsWhite |= (long)1<<63-offset;
 					++LOA_LIGNES.get(63-offset).value;
 					++LOA_COLUMNS.get(63-offset).value;
@@ -48,7 +48,7 @@ public class Grid implements Runnable{
 					++LOA_DIAGONAL_LEFT.get(63-offset).value;
 
 				}	
-				else if(c == '4')
+				else if(c == '2')
 				{
 					pionsBlack  |= (long)1<<63-offset;
 					++LOA_LIGNES.get(63-offset).value;
@@ -111,6 +111,9 @@ public class Grid implements Runnable{
 		}
 		
 		}	
+		System.out.println("dŽbut partie, nos pions:");
+		printBits(mPions);
+		System.out.println();
 	
 	}
 	
@@ -308,8 +311,8 @@ System.out.println(MASK_MOVEMENT.size());*/
 				//Diagonale gauche '\'
 				//en haut gauche
 				
-				 endX = currentX + LOA_DIAGONAL_RIGHT.get(i).value;
-				 endY = currentY + LOA_DIAGONAL_RIGHT.get(i).value;
+				 endX = currentX + LOA_DIAGONAL_LEFT.get(i).value;
+				 endY = currentY + LOA_DIAGONAL_LEFT.get(i).value;
 				if(endX <8 && endY < 8){
 					position = endY*8 + endX;
 					if((mPions & (1L << position)) == 0){
@@ -321,8 +324,8 @@ System.out.println(MASK_MOVEMENT.size());*/
 				
 				//en bas droite
 				
-				 endX = currentX - LOA_DIAGONAL_RIGHT.get(i).value;
-				 endY = currentY - LOA_DIAGONAL_RIGHT.get(i).value;
+				 endX = currentX - LOA_DIAGONAL_LEFT.get(i).value;
+				 endY = currentY - LOA_DIAGONAL_LEFT.get(i).value;
 				if(endX >=0 && endY >=0){
 					position = endY*8 + endX;
 					if((mPions & (1L << position)) == 0){
@@ -477,6 +480,7 @@ System.out.println(MASK_MOVEMENT.size());*/
 
 	{
 		long from = mPions & move;
+		//printBits(mPions);
 		long to = move^from;
 		updateLOAs(63-Long.numberOfLeadingZeros(from), 63-Long.numberOfLeadingZeros(to));
 		mPions ^= move;
@@ -484,21 +488,22 @@ System.out.println(MASK_MOVEMENT.size());*/
 	}
 	
 	public void coupAdvAndUpdate(long move){
-//		inverse();
+		inverse();
 		MakeMvtAndUpdate(move);
-//		inverse();
-		run();
+		inverse();
+		//run();
 	}
 	
 	private void inverse(){
 		long temp = mPions;
 		mPions = mPionsAdv;
-		mPions = temp;
+		mPionsAdv = temp;
 	}
 	
 	
 	public void updateLOAs(int from, int to){
-		System.out.println("from="+(63-Long.numberOfLeadingZeros(from)));
+		//System.out.println("from="+(63-Long.numberOfLeadingZeros(from)));
+		//System.out.println("from="+from+" to="+to);
 		--LOA_LIGNES.get(from).value;
 		--LOA_COLUMNS.get(from).value;
 		--LOA_DIAGONAL_RIGHT.get(from).value;
@@ -514,7 +519,10 @@ System.out.println(MASK_MOVEMENT.size());*/
 	
 	private class ReferencedByte{
 		private byte value = 0;
-		
+		@Override
+		public String toString(){
+			return value+"";
+		}
 		
 	}
 	
@@ -524,6 +532,9 @@ System.out.println(MASK_MOVEMENT.size());*/
 	{
 		ArrayList<Long> coups = generatePossibleMvt();
 		int taille = coups.size();
+		//int random = (int) (Math.random()*taille);
+		//System.out.println("bestMvt random:");
+		//printBits(coups.get(random));
 		return coups.get((int) (Math.random()*taille));
 	}
 	
@@ -532,9 +543,20 @@ System.out.println(MASK_MOVEMENT.size());*/
 
 	public String getBestMove()
 	{
-		printBits(bestMvt);
-		int from = 63-Long.numberOfLeadingZeros(mPions & bestMvt);
-		long to = 63-Long.numberOfLeadingZeros(bestMvt^from);
+		System.out.println("-------------");
+		//printBits(bestMvt);
+		//printBits(mPions);
+		//pringLOAs();
+		long fromLong = mPions & bestMvt;
+		long toLong = bestMvt^fromLong;
+		int from = 63-Long.numberOfLeadingZeros(fromLong);
+		int to = 63-Long.numberOfLeadingZeros(toLong);
+		/*long from = mPions & move;
+		
+		long to = move^from;*/
+		MakeMvtAndUpdate(bestMvt);
+		System.out.println("from="+from+" to="+to);
+		
 //		updateLOAs(63-Long.numberOfLeadingZeros(from), 63-Long.numberOfLeadingZeros(to));
 //		mPions ^= bestMvt;
 //		mPionsAdv &= (-1L^to);
@@ -544,7 +566,8 @@ System.out.println(MASK_MOVEMENT.size());*/
 		res[2] = (char) ('A' + (7-(to%8)));
 		res[3] = (char) ('1' + (to/8));
 		
-		
+		System.out.println("" + res[0] + res[1] +res[2] +res[3]);
+		System.out.println("-------------");
 		//String fromletter = String.valueOf(((char) ('H' - (from%8))) + ((char)'1' + (from/8)));
 		//String toletter = String.valueOf(((char) ('H' - (to%8))) + ((char)'1' + (to/8)));
 
@@ -553,8 +576,16 @@ System.out.println(MASK_MOVEMENT.size());*/
 	@Override
 	public void run() {
 		bestMvt = calcule(1);
-		MakeMvtAndUpdate(bestMvt);
+		//MakeMvtAndUpdate(bestMvt);
 		
+	}
+	
+	public void pringLOAs(){
+		System.out.println();
+		System.out.println(LOA_COLUMNS);
+		System.out.println(LOA_LIGNES);
+		System.out.println(LOA_DIAGONAL_RIGHT);
+		System.out.println(LOA_DIAGONAL_LEFT);
 	}
 	
 }

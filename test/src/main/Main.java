@@ -1,16 +1,19 @@
 package main;
 
-import java.util.ArrayList;
 
 public class Main {
 	
 	
+private Grid mGrid;
+private static Client mClient;
+
+private static Messages mMessages;
 
 	/**
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		Grid grid = new Grid(
+		/*Grid grid = new Grid(
 				"12211100" +
 				"01100010" +
 				"00000010" +
@@ -18,8 +21,22 @@ public class Main {
 				"00000000" +
 				"00000000" +
 				"00010020" +
-				"00000000");
-		grid.printBits();
+				"00000000", 1);*/
+		
+
+		
+		mClient = new Client(new Messages());
+		Thread th1 = new Thread(mClient);
+		
+		th1.start();
+		
+		
+//		mClient = new Client(new Messages());
+//		Thread th2 = new Thread(mClient);
+//		
+//		th2.start();
+		
+		//grid.printBits();
 		
 //		System.out.println(grid.isConnected());
 //
@@ -39,9 +56,9 @@ public class Main {
 		}*/
 		
 		//System.out.println(Long.MAX_VALUE | Long.MIN_VALUE);
-		grid.printGame();
-		grid.update(1L<<60 | 1L<<36);
-		grid.printGame();
+//		grid.printGame();
+//		grid.update(1L<<60 | 1L<<36);
+//		grid.printGame();
 	}
 	
 	

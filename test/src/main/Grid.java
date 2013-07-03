@@ -1,27 +1,25 @@
 package main;
 
 import java.util.ArrayList;
-
 import java.util.HashMap;
 import java.util.Map;
-import java.util.List;
 
 
-public class Grid {
+public class Grid implements Runnable{
 
 	private static Map<Integer,Long> MASK;
-	
+	public static int TYPE_DECODE_SERVER = 0;
 
 	
 	private long mPions = 0;
 	private long mPionsAdv = 0;
 	
-	private static final int LINES = 0;
+/*	private static final int LINES = 0;
 	private static final int COLUMNS = 1;
 	private static final int DIAGONAL_RIGHT = 2;  // '/'
 	private static final int DIAGONAL_LEFT = 3; // '\'
 	
-
+*/
 	//byte[][] mLinesOfActon;
 	private static final Map<Integer, ReferencedByte> LOA_LIGNES = new HashMap<Integer, ReferencedByte>(64);
 	private static final Map<Integer, ReferencedByte> LOA_COLUMNS = new HashMap<Integer, ReferencedByte>(64);
@@ -31,9 +29,52 @@ public class Grid {
 	
 	private static final Map<Long, Long> MASK_MOVEMENT = new HashMap<Long, Long>(2016);
 	
-	public Grid(String str){
+	public Grid(String str, int type,int myColor){
 		init();
 		int offset = 0;
+		
+		
+		if(type == TYPE_DECODE_SERVER){
+			
+			long pionsWhite = 0;
+			long pionsBlack = 0;
+			
+			for (char c : str.toCharArray()) {
+				if(c == '2'){
+					pionsWhite |= (long)1<<63-offset;
+					++LOA_LIGNES.get(63-offset).value;
+					++LOA_COLUMNS.get(63-offset).value;
+					++LOA_DIAGONAL_RIGHT.get(63-offset).value;
+					++LOA_DIAGONAL_LEFT.get(63-offset).value;
+
+				}	
+				else if(c == '4')
+				{
+					pionsBlack  |= (long)1<<63-offset;
+					++LOA_LIGNES.get(63-offset).value;
+					++LOA_COLUMNS.get(63-offset).value;
+					++LOA_DIAGONAL_RIGHT.get(63-offset).value;
+					++LOA_DIAGONAL_LEFT.get(63-offset).value;
+				}
+
+				++offset;
+			}
+			
+			if(myColor == Messages.White)
+			{
+				mPions = pionsWhite;
+				mPionsAdv = pionsBlack;
+			}
+			else
+			{
+				mPions = pionsBlack;
+				mPionsAdv = pionsWhite ;
+			}
+			
+		}else{
+		
+		
+		
 		for (char c : str.toCharArray()) {
 			if(c == '1'){
 				mPions |= (long)1<<63-offset;
@@ -69,7 +110,7 @@ public class Grid {
 				
 		}
 		
-			
+		}	
 	
 	}
 	
@@ -88,6 +129,7 @@ public class Grid {
 	public boolean isConnected(){
 		return isConnected(mPions);
 	}
+	
 	
 	private boolean isConnected(long pions){
 		
@@ -119,6 +161,7 @@ public class Grid {
 		
 		return pions == 0;
 	}
+	
 	
 	public void printBits(){
 		
@@ -168,6 +211,7 @@ System.out.println(MASK_MOVEMENT.size());*/
 		
 	}
 
+	
 	/**
 	 * 
 	 * @param pions
@@ -302,9 +346,11 @@ System.out.println(MASK_MOVEMENT.size());*/
 		
 	}
 	
+	
 	public long getmPions() {
 		return mPions;
 	}
+	
 	
 	public void init()
 	{
@@ -407,6 +453,7 @@ System.out.println(MASK_MOVEMENT.size());*/
 		
 
 	}
+	
 	public void printGame(){
 		System.out.println("---------------------");
 		long totalPions = mPions | mPionsAdv;
@@ -425,7 +472,9 @@ System.out.println(MASK_MOVEMENT.size());*/
 		}
 	}
 	
-	public void update(long move)
+	
+	public void MakeMvtAndUpdate(long move)
+
 	{
 		long from = mPions & move;
 		long to = move^from;
@@ -433,6 +482,20 @@ System.out.println(MASK_MOVEMENT.size());*/
 		mPions ^= move;
 		mPionsAdv &= (-1L^to);
 	}
+	
+	public void coupAdvAndUpdate(long move){
+//		inverse();
+		MakeMvtAndUpdate(move);
+//		inverse();
+		run();
+	}
+	
+	private void inverse(){
+		long temp = mPions;
+		mPions = mPionsAdv;
+		mPions = temp;
+	}
+	
 	
 	public void updateLOAs(int from, int to){
 		System.out.println("from="+(63-Long.numberOfLeadingZeros(from)));
@@ -456,5 +519,42 @@ System.out.println(MASK_MOVEMENT.size());*/
 	}
 	
 	
+	
+	private long calcule(int lvl)
+	{
+		ArrayList<Long> coups = generatePossibleMvt();
+		int taille = coups.size();
+		return coups.get((int) (Math.random()*taille));
+	}
+	
+	private static long bestMvt = 0;
+
+
+	public String getBestMove()
+	{
+		printBits(bestMvt);
+		int from = 63-Long.numberOfLeadingZeros(mPions & bestMvt);
+		long to = 63-Long.numberOfLeadingZeros(bestMvt^from);
+//		updateLOAs(63-Long.numberOfLeadingZeros(from), 63-Long.numberOfLeadingZeros(to));
+//		mPions ^= bestMvt;
+//		mPionsAdv &= (-1L^to);
+		char[] res = new char[4];
+		res[0] = (char) ('A' + (7-(from%8)));
+		res[1] = (char) ('1' + (from/8));
+		res[2] = (char) ('A' + (7-(to%8)));
+		res[3] = (char) ('1' + (to/8));
+		
+		
+		//String fromletter = String.valueOf(((char) ('H' - (from%8))) + ((char)'1' + (from/8)));
+		//String toletter = String.valueOf(((char) ('H' - (to%8))) + ((char)'1' + (to/8)));
+
+		return  "" + res[0] + res[1] +res[2] +res[3];
+	}
+	@Override
+	public void run() {
+		bestMvt = calcule(1);
+		MakeMvtAndUpdate(bestMvt);
+		
+	}
 	
 }

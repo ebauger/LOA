@@ -11,16 +11,21 @@ public class Grid {// implements Runnable{
 	public static int TYPE_DECODE_SERVER = 0;
 	private Stack<Stack<Long>> mStackMvts;
 	private Stack<Grid> mStackGame;
+	
+	//les masques qui retourne tout les bits à 1 en fonction de la case i, avec 0<=i<64
+	private static final Map<Integer, Long> LOA_MASK_LINES = new HashMap<Integer, Long>(64);
+	private static final Map<Integer, Long> LOA_MASK_COLUMNS = new HashMap<Integer, Long>(64);
+	private static final Map<Integer, Long> LOA_MASK_DR = new HashMap<Integer, Long>(64);
+	private static final Map<Integer, Long> LOA_MASK_DL = new HashMap<Integer, Long>(64);
+	
+	
+	//Contien le nombre de bit correspondant à la valuer (long) de la clé
+	private static final Map<Long, Integer> COMPTEUR = new HashMap<Long, Integer>(6000); //5628 mais c'est pas sûr
 
 	private long mPions = 0;
 	private long mPionsAdv = 0;
 
-	/*
-	 * private static final int LINES = 0; private static final int COLUMNS = 1;
-	 * private static final int DIAGONAL_RIGHT = 2; // '/' private static final
-	 * int DIAGONAL_LEFT = 3; // '\'
-	 */
-	// byte[][] mLinesOfActon;
+	
 
 	private final Map<Integer, ReferencedByte> LOA_LIGNES = new HashMap<Integer, ReferencedByte>(
 			64);
@@ -79,7 +84,7 @@ public class Grid {// implements Runnable{
 	}
 
 	public Grid(String str, int type, int myColor) {
-		init();
+		//init();
 		int offset = 0;
 
 		if (type == TYPE_DECODE_SERVER) {
@@ -119,29 +124,26 @@ public class Grid {// implements Runnable{
 			for (char c : str.toCharArray()) {
 				if (c == '1') {
 					mPions |= (long) 1 << 63 - offset;
-					++LOA_LIGNES.get(63 - offset).value;
+					/*++LOA_LIGNES.get(63 - offset).value;
 					++LOA_COLUMNS.get(63 - offset).value;
 					++LOA_DIAGONAL_RIGHT.get(63 - offset).value;
-					++LOA_DIAGONAL_LEFT.get(63 - offset).value;
+					++LOA_DIAGONAL_LEFT.get(63 - offset).value;*/
 
 				} else if (c == '2') {
 					mPionsAdv |= (long) 1 << 63 - offset;
-					++LOA_LIGNES.get(63 - offset).value;
+					/*++LOA_LIGNES.get(63 - offset).value;
 					++LOA_COLUMNS.get(63 - offset).value;
 					++LOA_DIAGONAL_RIGHT.get(63 - offset).value;
-					++LOA_DIAGONAL_LEFT.get(63 - offset).value;
+					++LOA_DIAGONAL_LEFT.get(63 - offset).value;*/
 				}
 
 				++offset;
 			}
 		}
-		// System.out.println("début partie, nos pions:");
-		// printBits(mPions);
-		// System.out.println();
 
 	}
 
-	public void printBits(Long arrayBits) {
+	public static void printBits(Long arrayBits) {
 		int i = Long.numberOfLeadingZeros(arrayBits);
 
 		while (i-- > 0) {
@@ -157,7 +159,6 @@ public class Grid {// implements Runnable{
 
 	private boolean isConnected(long pions) {
 
-		// printBits(pions);
 
 		if (pions != 0) {
 			int i = 63 - Long.numberOfLeadingZeros(pions);
@@ -183,74 +184,12 @@ public class Grid {// implements Runnable{
 		return pions == 0;
 	}
 
-	public void printBits() {
+	public static void printBits() {
 
-		// System.out.println(Long.toBinaryString(mPions));
-
-		// printBits(1L<<24|1L<<31)
-		// printBits(1L<<7|1L<<35);
-		// printBits(MASK_MOVEMENT.get(1L<<7|1L<<35));
-		// System.out.println();
-		// printBits(1L<<21|1L<<35);
-		// printBits(MASK_MOVEMENT.get(1L<<21|1L<<35));
-		// System.out.println();
-		// printBits(1L<<14|1L<<35);
-		// printBits(MASK_MOVEMENT.get(1L<<14|1L<<35));
-		// System.out.println();
-		// printBits(1L<<7|1L<<21);
-		// printBits(MASK_MOVEMENT.get(1L<<7|1L<<21));
-		// System.out.println();
-		// printBits(1L<<7|1L<<56);
-		// printBits(MASK_MOVEMENT.get(1L<<7|1L<<56));
-		// System.out.println();
-		// printBits(1L<<28|1L<<56);
-		// printBits(MASK_MOVEMENT.get(1L<<28|1L<<56));
-		// System.out.println();
-		//
-		// System.out.println(Long.toBinaryString(1L<<5|1L<<1| 1L<<63));
-		// System.out.println(Long.toBinaryString(MASK_MOVEMENT.get(1L<<5|1L<<1)|
-		// 1L<<63));
-		// System.out.println();
-		//
-		// System.out.println(Long.toBinaryString(1L<<27|1L<<43| 1L<<63));
-		// System.out.println(Long.toBinaryString(MASK_MOVEMENT.get(1L<<27|1L<<43)|
-		// 1L<<63));
-		// System.out.println();
-		// System.out.println(Long.toBinaryString(1L<<26|1L<<2| 1L<<63));
-		// System.out.println(Long.toBinaryString(MASK_MOVEMENT.get(1L<<26|1L<<2)|
-		// 1L<<63));*/
-		//
-		/*
-		 * System.out.println();
-		 * 
-		 * System.out.println(Long.toBinaryString(1L<<28|1L<<56| 1L<<63));
-		 * System
-		 * .out.println(Long.toBinaryString(MASK_MOVEMENT.get(1L<<28|1L<<56)|
-		 * 1L<<63));
-		 * 
-		 * System.out.println();
-		 * 
-		 * System.out.println(Long.toBinaryString(1L<<27|1L<<41| 1L<<63));
-		 * System
-		 * .out.println(Long.toBinaryString(MASK_MOVEMENT.get(1L<<27|1L<<41)|
-		 * 1L<<63));
-		 * 
-		 * System.out.println();
-		 * 
-		 * System.out.println(Long.toBinaryString(1L<<5|1L<<23| 1L<<63));
-		 * System.
-		 * out.println(Long.toBinaryString(MASK_MOVEMENT.get(1L<<5|1L<<23)|
-		 * 1L<<63));
-		 * 
-		 * System.out.println();
-		 * 
-		 * System.out.println(Long.toBinaryString(1L<<16|1L<<61| 1L<<63));
-		 * System
-		 * .out.println(Long.toBinaryString(MASK_MOVEMENT.get(1L<<16|1L<<61)|
-		 * 1L<<63));
-		 * 
-		 * System.out.println(MASK_MOVEMENT.size());
-		 */
+		printBits(LOA_MASK_DR.get(62));
+		printBits(LOA_MASK_DL.get(12));
+		printBits(1L<<3 | 1L<<11 | 1L<<51);
+		System.out.println(COMPTEUR.get(1L<<3 | 1L<<11 | 1L<<51));
 
 	}
 
@@ -267,9 +206,6 @@ public class Grid {// implements Runnable{
 
 		for (int i = 63; i >= 0; --i) {
 
-			// long postionPion = 1L << i;
-
-			// long move;
 			if ((1L << i & mPions) != 0) {
 
 				int currentY = i / 8;
@@ -390,15 +326,15 @@ public class Grid {// implements Runnable{
 		return mPions;
 	}
 
-	public void init() {
+	public static void init() {
 
-		mStackMvts = new Stack<Stack<Long>>();
-		mStackGame = new Stack<Grid>();
-		ArrayList<ReferencedByte> lignes = new ArrayList<ReferencedByte>(8);
-		ArrayList<ReferencedByte> columns = new ArrayList<ReferencedByte>(8);
-		ArrayList<ReferencedByte> diagR = new ArrayList<ReferencedByte>(15);
-		ArrayList<ReferencedByte> diagL = new ArrayList<ReferencedByte>(15);
-		for (int i = 0; i < 8; ++i) {
+		//mStackMvts = new Stack<Stack<Long>>();
+		//mStackGame = new Stack<Grid>();
+		//ArrayList<ReferencedByte> lignes = new ArrayList<ReferencedByte>(8);
+		//ArrayList<ReferencedByte> columns = new ArrayList<ReferencedByte>(8);
+		//ArrayList<ReferencedByte> diagR = new ArrayList<ReferencedByte>(15);
+		//ArrayList<ReferencedByte> diagL = new ArrayList<ReferencedByte>(15);
+		/*for (int i = 0; i < 8; ++i) {
 			lignes.add(new ReferencedByte());
 			columns.add(new ReferencedByte());
 		}
@@ -413,7 +349,144 @@ public class Grid {// implements Runnable{
 			LOA_COLUMNS.put(i, columns.get(i % 8));
 			LOA_DIAGONAL_RIGHT.put(i, diagR.get((i / 8) + (i % 8)));
 			LOA_DIAGONAL_LEFT.put(i, diagL.get((i / 8) + (7 - (i % 8))));
+		}*/
+		
+		
+		//Début génération de LOA MASKS
+		
+		//72340172838076673L = 0000000100000001000000010000000100000001000000010000000100000001
+		for(int i = 0; i< 64; ++i){
+			LOA_MASK_LINES.put(i, 255L<<i/8);
+			LOA_MASK_COLUMNS.put(i,72340172838076673L << i%8);
+			
 		}
+		long result = 0;
+		for(int i = 0; i<8; ++i){
+			
+			//for(int idx = 0; idx < 8; ++idx){
+				result = result << 8 | 1L << i;
+				//System.out.println(result);
+				//printBits(result);
+			//}
+			int endX = i;
+			int endY = 0;
+			while (endX >= 0 && endY < 8) {
+				int pos = endX + endY * 8;
+				
+				
+				
+				LOA_MASK_DR.put(pos, result);
+
+				--endX;
+				++endY;
+			
+			}
+		
+		}
+		result = 0;
+		for(int i = 63; i>=56;--i){
+			
+			//for(int idx = 0; idx < 8; ++idx){
+				result = result >>> 8 | 1L << i;
+				//System.out.println(result);
+				//printBits(result);
+			//}
+			int endX = i%8;
+			int endY = 7;
+			while (endX < 8 && endY >=0) {
+				int pos = endX + endY * 8;
+				
+				
+				
+				LOA_MASK_DR.put(pos, result);
+
+				++endX;
+				--endY;
+			
+			}
+		
+		}
+		result = 0;
+		for(int i = 7; i>=0; --i){
+			
+			//for(int idx = 0; idx < 8; ++idx){
+				result = result << 8 | 1L << i;
+				//System.out.println(result);
+				//printBits(result);
+			//}
+			int endX = i;
+			int endY = 0;
+			while (endX < 8  && endY < 8) {
+				int pos = endX + endY * 8;
+				
+				
+				
+				LOA_MASK_DL.put(pos, result);
+
+				++endX;
+				++endY;
+			
+			}
+		
+		}
+		result = 0;
+		for(int i = 56; i<63;++i){
+			
+			//for(int idx = 0; idx < 8; ++idx){
+				result = result >>> 8 | 1L << i;
+				//System.out.println(result);
+				//printBits(result);
+			//}
+			int endX = i%8;
+			int endY = 7;
+			while (endX >=0 && endY >=0) {
+				int pos = endX + endY * 8;
+				
+				
+				
+				LOA_MASK_DL.put(pos, result);
+
+				--endX;
+				--endY;
+			
+			}
+		
+		}
+		
+		
+		//Fin génération LOA_MASKS
+		
+		
+		//Début construction du compteur
+		//ajout de lignes et de colonnes
+		for(long i = 0L; i <256L; ++i){
+			
+			for(int j = 0; j<8; ++j){
+				int bitCount = Long.bitCount(i);
+				COMPTEUR.put(i << j*8, bitCount);
+				long keyCol = 0;
+				
+				for(int idx = 0; idx < 8; ++idx){
+					if((i & (1L << idx)) != 0){
+						keyCol |= 1L << idx*8; 
+					}
+				}
+				COMPTEUR.put(keyCol<<j, bitCount);
+				//printBits(keyCol<<j);
+			}
+			
+			long keyDR = 0;
+			long keyDL = 0;
+			//COMPTEUR.put(keyDR, bitCount);
+			//COMPTEUR.put(keyDL, bitCount);
+			
+		}
+		
+		
+		//Fin de construction du compteur
+		
+		
+		
 		long key = 0;
 		long value = 0;
 		for (int dep = 0; dep < 64; ++dep) {
@@ -428,11 +501,6 @@ public class Grid {// implements Runnable{
 					key = 1L << dep | 1L << end;
 					value = (dep < end) ? ((1L << end) - (1L << dep) * 2)
 							: ((1L << dep) - (1L << end) * 2);
-					// if(MASK_MOVEMENT.containsKey(key)){
-					// System.out.println("lines inserts existing key");
-					// printBits(key);
-					// printBits(value);
-					// }
 					MASK_MOVEMENT.put(key, value);
 				}
 			}
@@ -452,11 +520,6 @@ public class Grid {// implements Runnable{
 							value |= 1L << idx * 8 + x;
 						}
 					}
-					// if(MASK_MOVEMENT.containsKey(key)){
-					// System.out.println("columns inserts existing key");
-					// printBits(key);
-					// printBits(value);
-					// }
 					MASK_MOVEMENT.put(key, value);
 
 				}
@@ -477,12 +540,6 @@ public class Grid {// implements Runnable{
 					--interX;
 					++interY;
 				}
-				// if(MASK_MOVEMENT.containsKey(key)){
-				// System.out.println("DR inserts existing key -> x="+x+" y=" +
-				// y + " endx=" +endX + " endy="+endY);
-				// printBits(key);
-				// printBits(value);
-				// }
 				MASK_MOVEMENT.put(key, value);
 
 				--endX;
@@ -504,12 +561,7 @@ public class Grid {// implements Runnable{
 					++interX;
 					++interY;
 				}
-				// if(MASK_MOVEMENT.containsKey(key)){
-				// System.out.println("DL inserts existing key -> x="+x+" y=" +
-				// y + " endx=" +endX + " endy="+endY);
-				// printBits(key);
-				// printBits(value);
-				// }
+				
 				MASK_MOVEMENT.put(key, value);
 
 				++endX;
@@ -606,12 +658,7 @@ public class Grid {// implements Runnable{
 
 	public void calcule(int lvl) {
 
-		// System.out.println("lvl=" + lvl);
-
-		// int taille = coups.size();
-		// int random = (int) (Math.random()*taille);
-		// System.out.println("bestMvt random:");
-		// printBits(coups.get(random));
+	
 
 		if (this.isConnected(mPions)) { // valable aussi pour match nul !!!
 			this.alphabeta = 100;
@@ -656,60 +703,7 @@ public class Grid {// implements Runnable{
 
 	}
 
-	// private static long bestMvt = 0;
-
-	// public void calcule(int lvl) {
-	//
-	// // System.out.println("lvl=" + lvl);
-	//
-	// // int taille = coups.size();
-	// // int random = (int) (Math.random()*taille);
-	// // System.out.println("bestMvt random:");
-	// // printBits(coups.get(random));
-	//
-	// if (this.isConnected(mPions)) { // valable aussi pour match nul !!!
-	// this.alphabeta = 100;
-	// return;
-	// } else if (this.isConnected(mPionsAdv)) {
-	// this.alphabeta = -100;
-	// return;
-	// } else {
-	// this.alphabeta = 0;
-	// }
-	//
-	// ArrayList<Long> coups = generatePossibleMvt();
-	//
-	// if (lvl == 0) {
-	// return;
-	// }
-	//
-	// for (long move : coups) {
-	//
-	// Grid gridAdv = new Grid(this);
-	//
-	// gridAdv.coupAdvAndUpdate(move);
-	//
-	// this.alphabeta = ((-gridAdv.alphabeta) < this.alphabeta) ?
-	// gridAdv.alphabeta
-	// : this.alphabeta;
-	// // System.out.println("alphabeta=" + this.alphabeta);
-	//
-	// if (this.alphabeta == 100) {
-	// this.bestMvt = move;
-	//
-	// return;
-	// }
-	//
-	// if (this.alphabeta == -100) {
-	// return;
-	// }
-	//
-	// if (this.alphabeta == 0)
-	// gridAdv.calcule(lvl - 1);
-	//
-	// }
-	//
-	// }
+	
 
 	private static int nbcoupaleatoire = 0;
 
@@ -725,27 +719,14 @@ public class Grid {// implements Runnable{
 
 		}
 
-		System.out.println("-------------");
-		// printBits(bestMvt);
-		// printBits(mPions);
-		// printBits(mPionsAdv);
-		// pringLOAs();
+	
 		long fromLong = mPions & this.bestMvt;
 		long toLong = bestMvt ^ fromLong;
 		int from = 63 - Long.numberOfLeadingZeros(fromLong);
 		int to = 63 - Long.numberOfLeadingZeros(toLong);
-		/*
-		 * long from = mPions & move;
-		 * 
-		 * long to = move^from;
-		 */
+		
 		MakeMvtAndUpdate(bestMvt);
-		System.out.println("from=" + from + " to=" + to);
-
-		// updateLOAs(63-Long.numberOfLeadingZeros(from),
-		// 63-Long.numberOfLeadingZeros(to));
-		// mPions ^= bestMvt;
-		// mPionsAdv &= (-1L^to);
+		
 		char[] res = new char[4];
 		res[0] = (char) ('A' + (7 - (from % 8)));
 		res[1] = (char) ('1' + (from / 8));
@@ -753,21 +734,12 @@ public class Grid {// implements Runnable{
 		res[3] = (char) ('1' + (to / 8));
 
 		System.out.println("" + res[0] + res[1] + res[2] + res[3]);
-		System.out.println("-------------");
-		// String fromletter = String.valueOf(((char) ('H' - (from%8))) +
-		// ((char)'1' + (from/8)));
-		// String toletter = String.valueOf(((char) ('H' - (to%8))) + ((char)'1'
-		// + (to/8)));
+	
 
 		return "" + res[0] + res[1] + res[2] + res[3];
 	}
 
-	// @Override
-	// public void run() {
-	// bestMvt = calcule(1);
-	// //MakeMvtAndUpdate(bestMvt);
-	//
-	// }
+
 
 	public void pringLOAs() {
 		System.out.println();

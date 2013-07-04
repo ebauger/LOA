@@ -11,18 +11,40 @@ public class Main {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		// Grid grid = new Grid(
-		// "12211100" +
-		// "01100010" +
-		// "00000010" +
-		// "00020021" +
-		// "00000000" +
-		// "00000000" +
-		// "00010020" +
-		// "00000000", 1,0);
-		//
+		/* Grid grid = new Grid(
+		 "12211100" +
+		 "01100010" +
+		 "00000010" +
+		 "00020021" +
+		 "00000000" +
+		 "00000000" +
+		 "00010020" +
+		 "00000000", 1,0);*/
+		 
+		 Grid.init();
+		Grid.printBits();
+		
 
-		mMessages = new Messages();
+		//mMessages = new Messages();
+		
+	/*long result = 0;
+	for(int i = 0; i<8;++i){
+		result = result << 8 | 1L << i;
+		System.out.println(result);
+		System.out.println(Long.toBinaryString(result | 1L << 63));
+		//System.out.println(Long.toBinaryString(result >>> 63 | 1L << 63));
+	}
+	
+	System.out.println();
+	result = 0;
+	for(int i = 63; i>=56;--i){
+		result = result >>> 8 | 1L << i;
+		System.out.println(result);
+		System.out.println(Long.toBinaryString(result | 1L << 63));
+		//System.out.println(Long.toBinaryString(result >>> 63 | 1L << 63));
+	}*/
+	//System.out.println(result);
+	//System.out.println(Long.toBinaryString(result | 1L << 63));
 
 		// mClient = new Client(new Messages());
 		// Thread th2 = new Thread(mClient);

@@ -9,10 +9,10 @@ public class Grid {// implements Runnable{
 
 	private static Map<Integer, Long> MASK;
 	public static int TYPE_DECODE_SERVER = 0;
-	private Stack<Stack<Long>> mStackMvts;
-	private Stack<Grid> mStackGame;
+	//private Stack<Stack<Long>> mStackMvts;
+	//private Stack<Grid> mStackGame;
 	
-	//les masques qui retourne tout les bits ˆ 1 en fonction de la case i, avec 0<=i<64
+	//les masques qui retourne tout les bits ˆ 1 sur une mme ligne en fonction de la case i, avec 0<=i<64
 	private static final Map<Integer, Long> LOA_MASK_LINES = new HashMap<Integer, Long>(64);
 	private static final Map<Integer, Long> LOA_MASK_COLUMNS = new HashMap<Integer, Long>(64);
 	private static final Map<Integer, Long> LOA_MASK_DR = new HashMap<Integer, Long>(64);
@@ -27,64 +27,30 @@ public class Grid {// implements Runnable{
 
 	
 
-	/*private final Map<Integer, ReferencedByte> LOA_LIGNES = new HashMap<Integer, ReferencedByte>(
-			64);
-	private final Map<Integer, ReferencedByte> LOA_COLUMNS = new HashMap<Integer, ReferencedByte>(
-			64);
-	private final Map<Integer, ReferencedByte> LOA_DIAGONAL_RIGHT = new HashMap<Integer, ReferencedByte>(
-			64);
-	private final Map<Integer, ReferencedByte> LOA_DIAGONAL_LEFT = new HashMap<Integer, ReferencedByte>(
-			64);*/
+	
 
 	private static final Map<Long, Long> MASK_MOVEMENT = new HashMap<Long, Long>(
 			2016);
 
-	private Grid(Grid g) {
-		this.mPions = g.mPionsAdv;
-		this.mPionsAdv = g.mPions;
-
-		/*ArrayList<ReferencedByte> lignes = new ArrayList<ReferencedByte>(8);
-		ArrayList<ReferencedByte> columns = new ArrayList<ReferencedByte>(8);
-		ArrayList<ReferencedByte> diagR = new ArrayList<ReferencedByte>(15);
-		ArrayList<ReferencedByte> diagL = new ArrayList<ReferencedByte>(15);
-
-		for (int i = 0; i < 8; ++i) {
-			lignes.add(new ReferencedByte());
-			columns.add(new ReferencedByte());
+	private Grid(Grid g, long mvt, boolean inverse) {
+		if(inverse){
+			this.mPions = g.mPionsAdv;
+			this.mPionsAdv = g.mPions;
+			coupAdvAndUpdate(mvt);
+		}
+		else{
+			this.mPions = g.mPions;
+			this.mPionsAdv = g.mPionsAdv;
+			MakeMvtAndUpdate(mvt);
 		}
 
-		for (int i = 0; i < 15; ++i) {
-			diagR.add(new ReferencedByte());
-			diagL.add(new ReferencedByte());
-		}
-
-		for (int i = 0; i < 64; ++i) {
-			LOA_LIGNES.put(i, lignes.get(i / 8));
-			LOA_COLUMNS.put(i, columns.get(i % 8));
-			LOA_DIAGONAL_RIGHT.put(i, diagR.get((i / 8) + (i % 8)));
-			LOA_DIAGONAL_LEFT.put(i, diagL.get((i / 8) + (7 - (i % 8))));
-		}
-
-		for (int i = 0; i < 8; ++i) {
-			this.LOA_LIGNES.get(i * 8).value = g.LOA_LIGNES.get(i * 8).value;
-			this.LOA_COLUMNS.get(i).value = g.LOA_COLUMNS.get(i).value;
-		}
-
-		for (int i = 0; i < 8; ++i) {
-			this.LOA_DIAGONAL_RIGHT.get(i * 8).value = g.LOA_DIAGONAL_RIGHT
-					.get(i * 8).value;
-			this.LOA_DIAGONAL_RIGHT.get(63 - i).value = g.LOA_DIAGONAL_RIGHT
-					.get(63 - i).value;
-
-			this.LOA_DIAGONAL_LEFT.get(i).value = g.LOA_DIAGONAL_LEFT.get(i).value;
-			this.LOA_DIAGONAL_LEFT.get(i * 8).value = g.LOA_DIAGONAL_LEFT
-					.get(i * 8).value;
-		}*/
-
+		
 	}
+	
+	
 
 	public Grid(String str, int type, int myColor) {
-		//init();
+		
 		int offset = 0;
 
 		if (type == TYPE_DECODE_SERVER) {
@@ -95,17 +61,11 @@ public class Grid {// implements Runnable{
 			for (char c : str.toCharArray()) {
 				if (c == '4') {
 					pionsWhite |= (long) 1 << 63 - offset;
-					/*++LOA_LIGNES.get(63 - offset).value;
-					++LOA_COLUMNS.get(63 - offset).value;
-					++LOA_DIAGONAL_RIGHT.get(63 - offset).value;
-					++LOA_DIAGONAL_LEFT.get(63 - offset).value;*/
+					
 
 				} else if (c == '2') {
 					pionsBlack |= (long) 1 << 63 - offset;
-					/*++LOA_LIGNES.get(63 - offset).value;
-					++LOA_COLUMNS.get(63 - offset).value;
-					++LOA_DIAGONAL_RIGHT.get(63 - offset).value;
-					++LOA_DIAGONAL_LEFT.get(63 - offset).value;*/
+					
 				}
 
 				++offset;
@@ -124,17 +84,11 @@ public class Grid {// implements Runnable{
 			for (char c : str.toCharArray()) {
 				if (c == '1') {
 					mPions |= (long) 1 << 63 - offset;
-					/*++LOA_LIGNES.get(63 - offset).value;
-					++LOA_COLUMNS.get(63 - offset).value;
-					++LOA_DIAGONAL_RIGHT.get(63 - offset).value;
-					++LOA_DIAGONAL_LEFT.get(63 - offset).value;*/
+					
 
 				} else if (c == '2') {
 					mPionsAdv |= (long) 1 << 63 - offset;
-					/*++LOA_LIGNES.get(63 - offset).value;
-					++LOA_COLUMNS.get(63 - offset).value;
-					++LOA_DIAGONAL_RIGHT.get(63 - offset).value;
-					++LOA_DIAGONAL_LEFT.get(63 - offset).value;*/
+					
 				}
 
 				++offset;
@@ -197,10 +151,10 @@ public class Grid {// implements Runnable{
 		System.out.println(COMPTEUR.get(1L<<55 | 1L<<37 | 1L<<28));
 		System.out.println(COMPTEUR.get(1L<<24 | 1L<<60 | 1L<<33 | 1L <<42));
 		System.out.println(COMPTEUR.get(1L<<63 | 1L<<18));*/
-		System.out.println(COMPTEUR.get(1L<<62 | 1L<<55));
+		/*System.out.println(COMPTEUR.get(1L<<62 | 1L<<55));
 		System.out.println(COMPTEUR.get(1L<<38 | 1L<<45));
 		System.out.println(COMPTEUR.get(1L<<39 | 1L<<60));
-		System.out.println(COMPTEUR.get(1L<<47 | 1L<<61));
+		System.out.println(COMPTEUR.get(1L<<47 | 1L<<61));*/
 
 	}
 
@@ -222,145 +176,84 @@ public class Grid {// implements Runnable{
 				int actionCol = COMPTEUR.get(totalPions & LOA_MASK_COLUMNS.get(i));
 				int actionDR = COMPTEUR.get(totalPions & LOA_MASK_DR.get(i));
 				int actionDL = COMPTEUR.get(totalPions & LOA_MASK_DL.get(i));
-				if(((1L << i + actionLine) & LOA_MASK_LINES.get(i)) != 0){
-					possMvt.add(1L << i | 1L << i+actionLine);
+				
+				long movement = 0;
+				
+				int endI = i + actionLine;  // ˆ gauche
+				if(((1L << endI) & LOA_MASK_LINES.get(i)) != 0 && (1L << endI & mPions)==0 ){
+					movement = 1L << i | 1L << endI;
+					
+					if((MASK_MOVEMENT.get(movement)&mPionsAdv) == 0)
+						possMvt.add(movement);
+					
 				}
-				if(((1L << i - actionLine) & LOA_MASK_LINES.get(i)) != 0){
+				endI = i - actionLine; //mvt ˆ droite
+				if(((1L << endI) & LOA_MASK_LINES.get(i)) != 0 && (1L << endI & mPions)==0 ){
+					movement = 1L << i | 1L << endI;
+					if((MASK_MOVEMENT.get(movement)&mPionsAdv) == 0)
+						possMvt.add(movement);
+				}
+				/*if(((1L << i - actionLine) & LOA_MASK_LINES.get(i)) != 0){
 					possMvt.add(1L << i | 1L << i-actionLine);
+				}*/
+				endI = i + 8*actionCol; //mvt en haut
+				if(endI < 64 && (1L << endI & mPions)==0 ){
+					movement = 1L << i | 1L << endI;
+					
+					if((MASK_MOVEMENT.get(movement)&mPionsAdv) == 0)
+						possMvt.add(movement);
 				}
-				
-				if(((1L << i + 8*actionCol) & LOA_MASK_COLUMNS.get(i)) != 0){
+				/*if(((1L << i + 8*actionCol) & LOA_MASK_COLUMNS.get(i)) != 0){
 					possMvt.add(1L << i | 1L << i+ 8*actionCol);
+				}*/
+				endI = i - 8*actionCol; //mvt en bas
+				if(endI>=0 && (1L << endI & mPions)==0 ){
+					movement = 1L << i | 1L << endI;
+					if((MASK_MOVEMENT.get(movement)&mPionsAdv) == 0)
+						possMvt.add(movement);
 				}
-				if(((1L << i - 8*actionCol) & LOA_MASK_COLUMNS.get(i)) != 0){
+				/*if(((1L << i - 8*actionCol) & LOA_MASK_COLUMNS.get(i)) != 0){
 					possMvt.add(1L << i | 1L << i-8*actionCol);
+				}*/
+				endI = i + 7*actionDR; //mvt en haut droite
+				if(((1L << endI) & LOA_MASK_DR.get(i)) != 0 && (1L << endI & mPions)==0 ){
+					movement = 1L << i | 1L << endI;
+					if((MASK_MOVEMENT.get(movement)&mPionsAdv) == 0)
+						possMvt.add(movement);
 				}
-				
-				if(((1L << i + 7*actionDR) & LOA_MASK_DR.get(i)) != 0){
+				/*if(((1L << i + 7*actionDR) & LOA_MASK_DR.get(i)) != 0){
 					possMvt.add(1L << i | 1L << i+7*actionDR);
+				}*/
+				endI = i - 7*actionDR; //mvt en base gauche
+				if(((1L << endI) & LOA_MASK_DR.get(i)) != 0 && (1L << endI & mPions)==0 ){
+					movement = 1L << i | 1L << endI;
+					if((MASK_MOVEMENT.get(movement)&mPionsAdv) == 0)
+						possMvt.add(movement);
 				}
-				if(((1L << i - 7*actionDR) & LOA_MASK_DR.get(i)) != 0){
+				/*if(((1L << i - 7*actionDR) & LOA_MASK_DR.get(i)) != 0){
 					possMvt.add(1L << i | 1L << i-7*actionDR);
+				}*/
+				endI = i + 9*actionDL; //mvt en haut gauche
+				if(((1L << endI) & LOA_MASK_DL.get(i)) != 0 && (1L << endI & mPions)==0 ){
+					movement = 1L << i | 1L << endI;
+					if((MASK_MOVEMENT.get(movement)&mPionsAdv) == 0)
+						possMvt.add(movement);
 				}
-				
-				if(((1L << i + 9*actionDL) & LOA_MASK_DL.get(i)) != 0){
+				/*if(((1L << i + 9*actionDL) & LOA_MASK_DL.get(i)) != 0){
 					possMvt.add(1L << i | 1L << i+9*actionDL);
+				}*/
+				endI = i - 9*actionDL; //mvt en bas droite
+				if(((1L << endI) & LOA_MASK_DL.get(i)) != 0 && (1L << endI & mPions)==0 ){
+					movement = 1L << i | 1L << endI;
+					if((MASK_MOVEMENT.get(movement)&mPionsAdv) == 0)
+						possMvt.add(movement);
 				}
-				if(((1L << i - 9*actionDL) & LOA_MASK_DL.get(i)) != 0){
+				/*if(((1L << i - 9*actionDL) & LOA_MASK_DL.get(i)) != 0){
 					possMvt.add(1L << i | 1L << i-9*actionDL);
-				}
+				}*/
 				
 			}
-			/*if ((1L << i & mPions) != 0) {
-
-				int currentY = i / 8;
-				int currentX = i % 8;
-				int position;
-				// //lignes
-				// //à droite
-				position = i - LOA_LIGNES.get(i).value;
-				if (position >= currentY * 8) { // on dépasse pas
-					if ((mPions & (1L << position)) == 0) {
-						// System.out.println(i+" to "+position);
-						if ((mPionsAdv & MASK_MOVEMENT.get(1L << i
-								| 1L << position)) == 0) {
-							possMvt.add(1L << i | 1L << position);
-						}
-					}
-				}
-
-				// à gauche
-				position = i + LOA_LIGNES.get(i).value;
-				if (position < currentY * 8 + 8) {
-					if ((mPions & (1L << position)) == 0) {
-						if ((mPionsAdv & MASK_MOVEMENT.get(1L << i
-								| 1L << position)) == 0) {
-							possMvt.add(1L << i | 1L << position);
-						}
-					}
-				}
-
-				// le long de la colonne
-				// en haut
-				position = i + LOA_COLUMNS.get(i).value * 8;
-				if (position < 64) {
-					if ((mPions & (1L << position)) == 0) {
-						if ((mPionsAdv & MASK_MOVEMENT.get(1L << i
-								| 1L << position)) == 0) {
-							possMvt.add(1L << i | 1L << position);
-						}
-					}
-				}
-				// en bas
-				position = i - LOA_COLUMNS.get(i).value * 8;
-				if (position >= 0) {
-					if ((mPions & (1L << position)) == 0) {
-						if ((mPionsAdv & MASK_MOVEMENT.get(1L << i
-								| 1L << position)) == 0) {
-							possMvt.add(1L << i | 1L << position);
-						}
-					}
-				}
-
-				// diagonale droite '/'
-				// en haut droite
-				int endX = currentX - LOA_DIAGONAL_RIGHT.get(i).value;
-				int endY = currentY + LOA_DIAGONAL_RIGHT.get(i).value;
-				if (endX >= 0 && endY < 8) {
-					position = endY * 8 + endX;
-					if ((mPions & (1L << position)) == 0) {
-						if ((mPionsAdv & MASK_MOVEMENT.get(1L << i
-								| 1L << position)) == 0) {
-							possMvt.add(1L << i | 1L << position);
-						}
-					}
-				}
-
-				// en bas gauche
-				endX = currentX + LOA_DIAGONAL_RIGHT.get(i).value;
-				endY = currentY - LOA_DIAGONAL_RIGHT.get(i).value;
-				if (endX < 8 && endY >= 0) {
-					position = endY * 8 + endX;
-					if ((mPions & (1L << position)) == 0) {
-						if ((mPionsAdv & MASK_MOVEMENT.get(1L << i
-								| 1L << position)) == 0) {
-							possMvt.add(1L << i | 1L << position);
-						}
-					}
-				}
-
-				// Diagonale gauche '\'
-				// en haut gauche
-
-				endX = currentX + LOA_DIAGONAL_LEFT.get(i).value;
-				endY = currentY + LOA_DIAGONAL_LEFT.get(i).value;
-				if (endX < 8 && endY < 8) {
-					position = endY * 8 + endX;
-					if ((mPions & (1L << position)) == 0) {
-						if ((mPionsAdv & MASK_MOVEMENT.get(1L << i
-								| 1L << position)) == 0) {
-							possMvt.add(1L << i | 1L << position);
-						}
-					}
-				}
-
-				// en bas droite
-
-				endX = currentX - LOA_DIAGONAL_LEFT.get(i).value;
-				endY = currentY - LOA_DIAGONAL_LEFT.get(i).value;
-				if (endX >= 0 && endY >= 0) {
-					position = endY * 8 + endX;
-					if ((mPions & (1L << position)) == 0) {
-						if ((mPionsAdv & MASK_MOVEMENT.get(1L << i
-								| 1L << position)) == 0) {
-							possMvt.add(1L << i | 1L << position);
-						}
-					}
-				}
-
-				// possMvt.add(maskPion);
-
-			}*/
+			
 		}
 
 		return possMvt;
@@ -373,47 +266,23 @@ public class Grid {// implements Runnable{
 
 	public static void init() {
 
-		//mStackMvts = new Stack<Stack<Long>>();
-		//mStackGame = new Stack<Grid>();
-		//ArrayList<ReferencedByte> lignes = new ArrayList<ReferencedByte>(8);
-		//ArrayList<ReferencedByte> columns = new ArrayList<ReferencedByte>(8);
-		//ArrayList<ReferencedByte> diagR = new ArrayList<ReferencedByte>(15);
-		//ArrayList<ReferencedByte> diagL = new ArrayList<ReferencedByte>(15);
-		/*for (int i = 0; i < 8; ++i) {
-			lignes.add(new ReferencedByte());
-			columns.add(new ReferencedByte());
-		}
-
-		for (int i = 0; i < 15; ++i) {
-			diagR.add(new ReferencedByte());
-			diagL.add(new ReferencedByte());
-		}
-
-		for (int i = 0; i < 64; ++i) {
-			LOA_LIGNES.put(i, lignes.get(i / 8));
-			LOA_COLUMNS.put(i, columns.get(i % 8));
-			LOA_DIAGONAL_RIGHT.put(i, diagR.get((i / 8) + (i % 8)));
-			LOA_DIAGONAL_LEFT.put(i, diagL.get((i / 8) + (7 - (i % 8))));
-		}*/
+		
 		
 		
 		//DŽbut gŽnŽration de LOA MASKS
 		
 		//72340172838076673L = 0000000100000001000000010000000100000001000000010000000100000001
 		for(int i = 0; i< 64; ++i){
-			LOA_MASK_LINES.put(i, 255L<<i*8);
-			//printBits(255L<<i*8);
+			LOA_MASK_LINES.put(i, 255L<<(i/8)*8);
 			LOA_MASK_COLUMNS.put(i,72340172838076673L << i%8);
 			
 		}
 		long result = 0;
 		for(int i = 0; i<8; ++i){
 			
-			//for(int idx = 0; idx < 8; ++idx){
+			
 				result = result << 8 | 1L << i;
-				//System.out.println(result);
-				//printBits(result);
-			//}
+			
 			int endX = i;
 			int endY = 0;
 			while (endX >= 0 && endY < 8) {
@@ -432,11 +301,8 @@ public class Grid {// implements Runnable{
 		result = 0;
 		for(int i = 63; i>=56;--i){
 			
-			//for(int idx = 0; idx < 8; ++idx){
+			
 				result = result >>> 8 | 1L << i;
-				//System.out.println(result);
-				//printBits(result);
-			//}
 			int endX = i%8;
 			int endY = 7;
 			while (endX < 8 && endY >=0) {
@@ -455,11 +321,7 @@ public class Grid {// implements Runnable{
 		result = 0;
 		for(int i = 7; i>=0; --i){
 			
-			//for(int idx = 0; idx < 8; ++idx){
 				result = result << 8 | 1L << i;
-				//System.out.println(result);
-				//printBits(result);
-			//}
 			int endX = i;
 			int endY = 0;
 			while (endX < 8  && endY < 8) {
@@ -478,11 +340,9 @@ public class Grid {// implements Runnable{
 		result = 0;
 		for(int i = 56; i<63;++i){
 			
-			//for(int idx = 0; idx < 8; ++idx){
+		
 				result = result >>> 8 | 1L << i;
-				//System.out.println(result);
-				//printBits(result);
-			//}
+				
 			int endX = i%8;
 			int endY = 7;
 			while (endX >=0 && endY >=0) {
@@ -511,33 +371,25 @@ public class Grid {// implements Runnable{
 				int bitCount = Long.bitCount(i);
 				COMPTEUR.put(i << j*8, bitCount);
 				long keyCol = 0;
-				//long keyDR = 0;
-				//long keyDR2 = 0;
-				//long keyDL = 0;
+				
 				for(int idx = 0; idx < 8; ++idx){
 					if((i & (1L << idx)) != 0){
 						keyCol |= 1L << idx*8;
-						//keyDR |= 1L >>> idx;
-						//keyDR2 |= 1L << idx;
+						
 					}
 				}
 				
 				
 				COMPTEUR.put(keyCol<<j, bitCount);
-				/*keyDR = keyDR<<j & LOA_MASK_DR.get(j);
-				COMPTEUR.put(keyDR, Long.bitCount(keyDR));
-				keyDR2 = keyDR2<<j & LOA_MASK_DR.get(j);
-				COMPTEUR.put(keyDR2, Long.bitCount(keyDR2));
-				//COMPTEUR.put(keyDL, bitCount);
-				printBits(keyDR);*/
+			
 			}
 			
 			
 		}
 		int j = 1;
-		for(long i = 2L ; i<257L; i *=2L){  //2, 4, 8, 16 etc  ex 32
-			//System.out.println(i+" "+j);
-			for(long idx = 0; idx < i ; ++idx){  // de 0 ˆ 32-1
+		for(long i = 2L ; i<257L; i *=2L){  
+			
+			for(long idx = 0; idx < i ; ++idx){  
 				long keyDR = 0;
 				long keyDR2 = 0;
 				long keyDL = 0;
@@ -548,22 +400,19 @@ public class Grid {// implements Runnable{
 						keyDR2 |= 1L << (7-k)*8 + 8-j+k;
 						keyDL |= 1L<< k*8 + 8- j+k ;
 						keyDL2 |= 1L << (7-k)*8 -k+j-1;
-						//System.out.println((7-k)*8 + 8-j+k);
+						
 						
 					}
 				}
 				
 				
-				//printBits(keyDR2);
+				
 				COMPTEUR.put(keyDR, Long.bitCount(keyDR));
 				COMPTEUR.put(keyDR2, Long.bitCount(keyDR2));
 				COMPTEUR.put(keyDL, Long.bitCount(keyDL));
 				COMPTEUR.put(keyDL2, Long.bitCount(keyDL2));
 			}
-			//keyDR = keyDR & LOA_MASK_DR.get(j);
 			
-			//keyDR2 = keyDR2<<j & LOA_MASK_DR.get(j);
-			//COMPTEUR.put(keyDR2, Long.bitCount(keyDR2));
 			++j;
 		}
 		
@@ -671,7 +520,9 @@ public class Grid {// implements Runnable{
 	}
 
 	public void printGame() {
+		int idx = 8;
 		System.out.println("---------------------");
+		System.out.print(idx+">");
 		long totalPions = mPions | mPionsAdv;
 		for (int i = 63; i >= 0; --i) {
 			if ((totalPions & (1l << i)) == 0) {
@@ -683,18 +534,20 @@ public class Grid {// implements Runnable{
 			}
 			if (i % 8 == 0) {
 				System.out.println();
+				if(idx > 1)
+					System.out.print(--idx+">");
 			}
 		}
+		System.out.println("   A  B  C  D  E  F  G  H");
 	}
 
 	public void MakeMvtAndUpdate(long move)
 
 	{
 		long from = mPions & move;
-		// printBits(mPions);
+	
 		long to = move ^ from;
-		//updateLOAs(63 - Long.numberOfLeadingZeros(from),
-				//63 - Long.numberOfLeadingZeros(to), (mPionsAdv & to) != 0);
+		
 		mPions ^= move;
 		mPionsAdv &= (-1L ^ to);
 	}
@@ -703,7 +556,7 @@ public class Grid {// implements Runnable{
 		inverse();
 		MakeMvtAndUpdate(move);
 		inverse();
-		// run();
+		
 	}
 
 	private void inverse() {
@@ -712,89 +565,77 @@ public class Grid {// implements Runnable{
 		mPionsAdv = temp;
 	}
 
-	/*public void updateLOAs(int from, int to, boolean eat) {
-		// System.out.println("from="+(63-Long.numberOfLeadingZeros(from)));
-		// System.out.println("from="+from+" to="+to);
-		--LOA_LIGNES.get(from).value;
-		--LOA_COLUMNS.get(from).value;
-		--LOA_DIAGONAL_RIGHT.get(from).value;
-		--LOA_DIAGONAL_LEFT.get(from).value;
-
-		if (!eat) {
-			++LOA_LIGNES.get(to).value;
-			++LOA_COLUMNS.get(to).value;
-			++LOA_DIAGONAL_RIGHT.get(to).value;
-			++LOA_DIAGONAL_LEFT.get(to).value;
+	
+	
+	
+	public int getBestM( int lvl, int alpha, int beta){
+		
+//		 si P est une feuille alors
+		if(isConnected() && isConnected(mPionsAdv))
+			return -50;
+		if(isConnected())
+			return Integer.MAX_VALUE;
+		if(isConnected(mPionsAdv))
+			return Integer.MIN_VALUE;
+		if(lvl == 0){
+			return 0;
 		}
-	}*/
-
-	/*private class ReferencedByte {
-		private byte value = 0;
-
-		@Override
-		public String toString() {
-			return value + "";
+		
+//	       retourner la valeur de P
+		
+		// sinon
+		else{
+			int best = Integer.MIN_VALUE;
+			ArrayList<Long> moves = generatePossibleMvt();
+			for(Long mvt: moves){
+				Grid advGrid = new Grid(this, mvt, true);
+				int val = advGrid.getBestM(lvl-1, -alpha, -beta);
+				if(val > best){
+					alpha = best;
+					if(alpha >= beta){
+						return best;
+					}
+				}
+			}
+			return best;
+			
 		}
-
-	}*/
-
-	private int alphabeta = 0;
-	private Long bestMvt = 0L;
-
+//	  
+//	       Meilleur = ÐINFINI
+//	       pour tout fils Pi de P faire
+//	           Val = -ALPHABETA(Pi,-B,-A)
+//	           si Val > Meilleur alors
+//	               Meilleur = Val
+//	               si Meilleur > A alors
+//	                      A = Meilleur
+//	                   si A ³ B alors
+//	                       retourner Meilleur
+//	                   finsi
+//	               finsi
+//	           finsi 
+//	       finpour 
+//	       retourner Meilleur
+//	   finsi
+		
+		
+		
+		//return 1L;
+	}
 	public void calcule(int lvl) {
 
 	
 
-		if (this.isConnected(mPions)) { // valable aussi pour match nul !!!
-			this.alphabeta = 100;
-			return;
-		} else if (this.isConnected(mPionsAdv)) {
-			this.alphabeta = -100;
-			return;
-		} else {
-			this.alphabeta = 0;
-		}
-
-		ArrayList<Long> coups = generatePossibleMvt();
-
-		if (lvl == 0) {
-			return;
-		}
-
-		for (long move : coups) {
-
-			Grid gridAdv = new Grid(this);
-
-			gridAdv.coupAdvAndUpdate(move);
-
-			this.alphabeta = ((-gridAdv.alphabeta) < this.alphabeta) ? gridAdv.alphabeta
-					: this.alphabeta;
-			// System.out.println("alphabeta=" + this.alphabeta);
-
-			if (this.alphabeta == 100) {
-				this.bestMvt = move;
-
-				return;
-			}
-
-			if (this.alphabeta == -100) {
-				return;
-			}
-
-			if (this.alphabeta == 0)
-				gridAdv.calcule(lvl - 1);
-
-		}
+		
 
 	}
 
 	
 
-	private static int nbcoupaleatoire = 0;
+	//private static int nbcoupaleatoire = 0;
 
 	public String getBestMove(int lvl) {
 
-		this.bestMvt = 0L;
+		/*this.bestMvt = 0L;
 		calcule(lvl);
 
 		if (this.bestMvt == 0L) {
@@ -802,10 +643,25 @@ public class Grid {// implements Runnable{
 			System.out.println(nbcoupaleatoire++);
 			this.bestMvt = coups.get((int) (Math.random() * coups.size()));
 
+		}*/
+		ArrayList<Long> moves = generatePossibleMvt();
+		int alpha = Integer.MIN_VALUE;
+		int beta = Integer.MAX_VALUE;
+		long bestMvt = 0L;
+		loop : for(long mvt: moves){
+			
+			Grid advGrid = new Grid(this, mvt, false);
+			int val = advGrid.getBestM(lvl-1, alpha, beta);
+			if(val > alpha){
+				alpha = val;
+				bestMvt = mvt;
+				System.out.println(val);
+			}
 		}
+		
 
 	
-		long fromLong = mPions & this.bestMvt;
+		long fromLong = mPions & bestMvt;
 		long toLong = bestMvt ^ fromLong;
 		int from = 63 - Long.numberOfLeadingZeros(fromLong);
 		int to = 63 - Long.numberOfLeadingZeros(toLong);
@@ -826,12 +682,6 @@ public class Grid {// implements Runnable{
 
 
 
-	/*public void pringLOAs() {
-		System.out.println();
-		System.out.println(LOA_COLUMNS);
-		System.out.println(LOA_LIGNES);
-		System.out.println(LOA_DIAGONAL_RIGHT);
-		System.out.println(LOA_DIAGONAL_LEFT);
-	}*/
+	
 
 }

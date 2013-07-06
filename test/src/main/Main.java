@@ -1,5 +1,7 @@
 package main;
 
+import java.util.ArrayList;
+
 public class Main {
 
 	private Grid mGrid;
@@ -11,21 +13,41 @@ public class Main {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		/* Grid grid = new Grid(
-		 "12211100" +
-		 "01100010" +
-		 "00000010" +
-		 "00020021" +
-		 "00000000" +
-		 "00000000" +
-		 "00010020" +
-		 "00000000", 1,0);*/
-		 
-		 Grid.init();
-		//Grid.printBits();
 		
+		 Grid.init();
+		 
+		 Grid grid = new Grid(
+		 "00000000" +
+		 "00000000" +
+		 "00200200" +
+		 "00000000" +
+		 "00100200" +
+		 "00021010" +
+		 "00000000" +
+		 "00000200", 1,0);
+		 
+		grid.getBestMove(1);
+		//Grid.printBits();
+		 //grid.printGame();
+		/*ArrayList<Long> moves = grid.generatePossibleMvt();
+		for(long mv: moves){
+			long fromLong = grid.getmPions() & mv;
+			long toLong = mv ^ fromLong;
+			int from = 63 - Long.numberOfLeadingZeros(fromLong);
+			int to = 63 - Long.numberOfLeadingZeros(toLong);
+			
+			
+			
+			char[] res = new char[4];
+			res[0] = (char) ('A' + (7 - (from % 8)));
+			res[1] = (char) ('1' + (from / 8));
+			res[2] = (char) ('A' + (7 - (to % 8)));
+			res[3] = (char) ('1' + (to / 8));
 
-		mMessages = new Messages();
+			System.out.println("" + res[0] + res[1] + res[2] + res[3]);
+		}*/
+
+		//mMessages = new Messages();
 		
 	/*long result = 0;
 	for(int i = 0; i<8;++i){

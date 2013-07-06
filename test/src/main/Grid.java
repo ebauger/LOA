@@ -769,22 +769,15 @@ public class Grid {// implements Runnable{
 
 			for (long move : coups) {
 
-				// application du mouvement
-				long pionAdvEating = this.MakeMvtAndUpdate(move);
+				Grid gridAdv = new Grid(this);
+
+				gridAdv.coupAdvAndUpdate(move);
 
 				if (alpha != MAX_HEURISTIQUE & alpha != MIN_HEURISTIQUE) {
 					alphabetas.push(alpha);
 				}
 
-				this.inverse();
-
-				calcule(lvl - 1);
-
-				this.inverse();
-
-				this.MakeMvtAndUpdate(move);
-
-				this.replaceAdvPion(pionAdvEating);
+				gridAdv.calcule(lvl - 1);
 
 				int alphaTmp = negateHeuristique(alphabetas.pop());
 

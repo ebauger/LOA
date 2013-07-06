@@ -56,7 +56,8 @@ class Client extends Thread {
 
 					mMessages.playWith(boardValues, Messages.White);
 
-					// System.out.println("Nouvelle partie! Vous jouer blanc, entrez votre premier coup : ");
+					System.out
+							.println("Nouvelle partie! Vous jouer blanc, \nentrez votre premier coup : ");
 
 					mMessages.getCoup(); // null;
 					// move = console.readLine();
@@ -67,7 +68,7 @@ class Client extends Thread {
 				// Début de la partie en joueur Noir
 				if (cmd == '2') {
 					System.out
-							.println("Nouvelle partie! Vous jouer noir, attendez le coup des blancs");
+							.println("Nouvelle partie! Vous jouer noir, \nattendez le coup des blancs");
 					byte[] aBuffer = new byte[1024];
 
 					int size = input.available();
@@ -102,10 +103,11 @@ class Client extends Thread {
 					input.read(aBuffer, 0, size);
 
 					String s = new String(aBuffer);
-					// System.out.println("Dernier coup : " + s);
+					System.out.println("Dernier coup :\n " + s);
+
 					mMessages.setCoupAdversaire(s);
 
-					// System.out.println("Entrez votre coup : ");
+					System.out.println("Entrez votre coup : ");
 					mMessages.getCoup();
 					// move = console.readLine();
 					// output.write(move.getBytes(),0,move.length());
@@ -114,7 +116,8 @@ class Client extends Thread {
 				}
 				// Le dernier coup est invalide
 				if (cmd == '4') {
-					// System.out.println("Coup invalide, entrez un nouveau coup : ");
+					System.err
+							.println("Coup invalide, entrez un nouveau coup : ");
 					// String move = null;
 					// mMessages.printlnLOAs();
 					mMessages.getCoup();
@@ -129,6 +132,7 @@ class Client extends Thread {
 
 	public void envoieCoup(String coup) {
 		try {
+			System.out.println(coup);
 			output.write(coup.getBytes(), 0, coup.length());
 			output.flush();
 		} catch (IOException e) {

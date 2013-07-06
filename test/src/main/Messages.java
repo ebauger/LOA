@@ -19,18 +19,26 @@ public class Messages {
 
 	}
 
+	long start;
+
 	public void getCoup() {
 
 		Thread r = new Rototo(this);
 		r.start();
 
-		
+		start = System.nanoTime();
 
 	}
 
 	public void setCoup(String coup) {
 
 		mClient.envoieCoup(coup);
+
+		long end = System.nanoTime();
+		float time = end - start;
+
+		System.out.println("time s= " + time / 1000000000 + " mls=" + time
+				+ 1000000 + " mcs=" + time / 1000 + " ns=" + time);
 
 	}
 
@@ -61,6 +69,7 @@ public class Messages {
 		public void run() {
 			// mGrid.getBestMove(3);
 			msg.setCoup(mGrid.getBestMove(3));
+			System.gc();
 		}
 	}
 }

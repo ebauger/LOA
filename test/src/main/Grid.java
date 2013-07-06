@@ -39,7 +39,15 @@ public class Grid {// implements Runnable{
 	private static final Map<Long, Long> MASK_MOVEMENT = new HashMap<Long, Long>(
 			2016);
 
+	/**
+	 * env 10 micro secondes
+	 * 
+	 * @param g
+	 */
 	private Grid(Grid g) {
+
+		// long start = System.nanoTime();
+
 		this.mPions = g.mPionsAdv;
 		this.mPionsAdv = g.mPions;
 
@@ -157,8 +165,13 @@ public class Grid {// implements Runnable{
 		return isConnected(mPions);
 	}
 
+	/**
+	 * env 400 nano secondes
+	 */
 	private boolean isConnected(long pions) {
 
+
+		// long start = System.nanoTime();
 
 		if (pions != 0) {
 			int i = 63 - Long.numberOfLeadingZeros(pions);
@@ -180,6 +193,13 @@ public class Grid {// implements Runnable{
 			}
 
 		}
+
+		// long end = System.nanoTime();
+		// float time = end - start;
+		//
+		// System.out.println("isConnected(pions) : mvt : time s= " + time
+		// / 1000000000 + " mls=" + time / 1000000 + " mcs=" + time / 1000
+		// + " ns=" + time);
 
 		return pions == 0;
 	}
@@ -205,12 +225,16 @@ public class Grid {// implements Runnable{
 	}
 
 	/**
+	 * env 5 micro-secondes
 	 * 
 	 * @param pions
 	 * @return the List of possible moves
 	 */
+
 	public ArrayList<Long> generatePossibleMvt() {
 		ArrayList<Long> possMvt = new ArrayList<Long>();
+
+		// long start = System.nanoTime();
 
 		// parcour chaque bits (boucle de 64)
 		// + condition si 1L<<i et pions != 0
@@ -363,6 +387,13 @@ public class Grid {// implements Runnable{
 			}*/
 		}
 
+		// long end = System.nanoTime();
+		// float time = end - start;
+		//
+		// System.out.println("generate mvt : time s= " + time / 1000000000
+		// + " mls=" + time / 1000000 + " mcs=" + time / 1000 + " ns="
+		// + time);
+		
 		return possMvt;
 
 	}
@@ -687,6 +718,11 @@ public class Grid {// implements Runnable{
 		}
 	}
 
+	/**
+	 * 
+	 * @param move
+	 * @return the avdPion eated 0L else
+	 */
 	public void MakeMvtAndUpdate(long move)
 
 	{
@@ -726,7 +762,7 @@ public class Grid {// implements Runnable{
 			++LOA_DIAGONAL_RIGHT.get(to).value;
 			++LOA_DIAGONAL_LEFT.get(to).value;
 		}
-	}*/
+	}
 
 	/*private class ReferencedByte {
 		private byte value = 0;
@@ -738,100 +774,104 @@ public class Grid {// implements Runnable{
 
 	}*/
 
-	private int alphabeta = 0;
-	private Long bestMvt = 0L;
+	private static Stack<Integer> alphabetas;
+	private static Stack<Long> bestMoves;
 
 	public void calcule(int lvl) {
 
-	
-
-		if (this.isConnected(mPions)) { // valable aussi pour match nul !!!
-			this.alphabeta = 100;
-			return;
-		} else if (this.isConnected(mPionsAdv)) {
-			this.alphabeta = -100;
-			return;
-		} else {
-			this.alphabeta = 0;
-		}
-
-		ArrayList<Long> coups = generatePossibleMvt();
-
-		if (lvl == 0) {
-			return;
-		}
-
-		for (long move : coups) {
-
-			Grid gridAdv = new Grid(this);
-
-			gridAdv.coupAdvAndUpdate(move);
-
-			this.alphabeta = ((-gridAdv.alphabeta) < this.alphabeta) ? gridAdv.alphabeta
-					: this.alphabeta;
-			// System.out.println("alphabeta=" + this.alphabeta);
-
-			if (this.alphabeta == 100) {
-				this.bestMvt = move;
-
-				return;
-			}
-
-			if (this.alphabeta == -100) {
-				return;
-			}
-
-			if (this.alphabeta == 0)
-				gridAdv.calcule(lvl - 1);
-
-		}
-
 	}
 
-	
+	private final static int MAX_HEURISTIQUE = Integer.MAX_VALUE;
+	private final static int MIN_HEURISTIQUE = Integer.MIN_VALUE + 1;
+	private final static int NO_HEURISTIQUE = Integer.MIN_VALUE;
 
-	private static int nbcoupaleatoire = 0;
+	private int calculHeuristique() {
+		int heuristique = 0;
 
-	public String getBestMove(int lvl) {
-
-		this.bestMvt = 0L;
-		calcule(lvl);
-
-		if (this.bestMvt == 0L) {
-			ArrayList<Long> coups = generatePossibleMvt();
-			System.out.println(nbcoupaleatoire++);
-			this.bestMvt = coups.get((int) (Math.random() * coups.size()));
-
+		if (this.isConnected(mPions) & this.isConnected(mPionsAdv)) {
+			heuristique += 50;
+		} else if (this.isConnected(mPions)) { // valable aussi pour match nul
+												// !!!
+			heuristique += 100;
+		} else if (this.isConnected(mPionsAdv)) {
+			heuristique -= 100;
 		}
 
-	
-		long fromLong = mPions & this.bestMvt;
+		return heuristique;
+	}
+
+	private int negateHeuristique(int heuristique) {
+		if (heuristique == MAX_HEURISTIQUE) {
+			return MIN_HEURISTIQUE;
+		}
+
+		if (heuristique == MIN_HEURISTIQUE)
+			return MAX_HEURISTIQUE;
+
+		if (heuristique == NO_HEURISTIQUE)
+			return NO_HEURISTIQUE;
+
+		return -heuristique;
+	}
+
+	private static int nbcoupNONaleatoire = 0;
+	private static int nbfeuilles;
+
+	public String getBestMove(int lvl) {
+		nbfeuilles = 0;
+		alphabetas = new Stack<Integer>();
+		// nbNoeuds = 0L;
+
+		calcule(lvl);
+
+		System.out.println("nbfeuilles=" + nbfeuilles);
+
+		Long bestMvt = bestMoves.pop();
+
+		if (bestMoves.isEmpty()) {
+			ArrayList<Long> coups = generatePossibleMvt();
+			bestMvt = coups.get((int) (Math.random() * coups.size()));
+		} else {
+			System.out.println("nbcoupNONaleatoire=" + ++nbcoupNONaleatoire);
+		}
+		// System.out.println("-------------");
+		// printBits(bestMvt);
+		// printBits(mPions);
+		// printBits(mPionsAdv);
+		// pringLOAs();
+		long fromLong = mPions & bestMvt;
 		long toLong = bestMvt ^ fromLong;
 		int from = 63 - Long.numberOfLeadingZeros(fromLong);
 		int to = 63 - Long.numberOfLeadingZeros(toLong);
 		
 		MakeMvtAndUpdate(bestMvt);
-		
+		// System.out.println("from=" + from + " to=" + to);
+
+		// updateLOAs(63-Long.numberOfLeadingZeros(from),
+		// 63-Long.numberOfLeadingZeros(to));
+		// mPions ^= bestMvt;
+		// mPionsAdv &= (-1L^to);
 		char[] res = new char[4];
 		res[0] = (char) ('A' + (7 - (from % 8)));
 		res[1] = (char) ('1' + (from / 8));
 		res[2] = (char) ('A' + (7 - (to % 8)));
 		res[3] = (char) ('1' + (to / 8));
 
-		System.out.println("" + res[0] + res[1] + res[2] + res[3]);
-	
+		// System.out.println("" + res[0] + res[1] + res[2] + res[3]);
+		// System.out.println("-------------");
+		// String fromletter = String.valueOf(((char) ('H' - (from%8))) +
+		// ((char)'1' + (from/8)));
+		// String toletter = String.valueOf(((char) ('H' - (to%8))) + ((char)'1'
+		// + (to/8)));
 
 		return "" + res[0] + res[1] + res[2] + res[3];
 	}
 
-
-
-	/*public void pringLOAs() {
-		System.out.println();
-		System.out.println(LOA_COLUMNS);
-		System.out.println(LOA_LIGNES);
-		System.out.println(LOA_DIAGONAL_RIGHT);
-		System.out.println(LOA_DIAGONAL_LEFT);
-	}*/
+	// @Override
+	// public void run() {
+	// bestMvt = calcule(1);
+	// //MakeMvtAndUpdate(bestMvt);
+	//
+	// }
 
 }

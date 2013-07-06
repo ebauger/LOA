@@ -34,7 +34,15 @@ public class Grid {// implements Runnable{
 	private static final Map<Long, Long> MASK_MOVEMENT = new HashMap<Long, Long>(
 			2016);
 
+	/**
+	 * env 10 micro secondes
+	 * 
+	 * @param g
+	 */
 	private Grid(Grid g) {
+
+		// long start = System.nanoTime();
+
 		this.mPions = g.mPionsAdv;
 		this.mPionsAdv = g.mPions;
 
@@ -75,6 +83,13 @@ public class Grid {// implements Runnable{
 			this.LOA_DIAGONAL_LEFT.get(i * 8).value = g.LOA_DIAGONAL_LEFT
 					.get(i * 8).value;
 		}
+
+		// long end = System.nanoTime();
+		// float time = end - start;
+		//
+		// System.out.println("new Grid(Grid g) : mvt : time s= " + time
+		// / 1000000000 + " mls=" + time / 1000000 + " mcs=" + time / 1000
+		// + " ns=" + time);
 
 	}
 
@@ -155,9 +170,14 @@ public class Grid {// implements Runnable{
 		return isConnected(mPions);
 	}
 
+	/**
+	 * env 400 nano secondes
+	 */
 	private boolean isConnected(long pions) {
 
 		// printBits(pions);
+
+		// long start = System.nanoTime();
 
 		if (pions != 0) {
 			int i = 63 - Long.numberOfLeadingZeros(pions);
@@ -179,6 +199,13 @@ public class Grid {// implements Runnable{
 			}
 
 		}
+
+		// long end = System.nanoTime();
+		// float time = end - start;
+		//
+		// System.out.println("isConnected(pions) : mvt : time s= " + time
+		// / 1000000000 + " mls=" + time / 1000000 + " mcs=" + time / 1000
+		// + " ns=" + time);
 
 		return pions == 0;
 	}
@@ -255,12 +282,16 @@ public class Grid {// implements Runnable{
 	}
 
 	/**
+	 * env 5 micro-secondes
 	 * 
 	 * @param pions
 	 * @return the List of possible moves
 	 */
+
 	public ArrayList<Long> generatePossibleMvt() {
 		ArrayList<Long> possMvt = new ArrayList<Long>();
+
+		// long start = System.nanoTime();
 
 		// parcour chaque bits (boucle de 64)
 		// + condition si 1L<<i et pions != 0
@@ -382,6 +413,13 @@ public class Grid {// implements Runnable{
 			}
 		}
 
+		// long end = System.nanoTime();
+		// float time = end - start;
+		//
+		// System.out.println("generate mvt : time s= " + time / 1000000000
+		// + " mls=" + time / 1000000 + " mcs=" + time / 1000 + " ns="
+		// + time);
+
 		return possMvt;
 
 	}
@@ -391,6 +429,8 @@ public class Grid {// implements Runnable{
 	}
 
 	public void init() {
+
+		bestMoves = new Stack<Long>();
 
 		mStackMvts = new Stack<Stack<Long>>();
 		mStackGame = new Stack<Grid>();
@@ -550,16 +590,27 @@ public class Grid {// implements Runnable{
 		}
 	}
 
-	public void MakeMvtAndUpdate(long move)
+	/**
+	 * 
+	 * @param move
+	 * @return the avdPion eated 0L else
+	 */
+	public long MakeMvtAndUpdate(long move)
 
 	{
 		long from = mPions & move;
 		// printBits(mPions);
 		long to = move ^ from;
+
+		long eatingAdvPion = mPionsAdv & to;
+
 		updateLOAs(63 - Long.numberOfLeadingZeros(from),
-				63 - Long.numberOfLeadingZeros(to), (mPionsAdv & to) != 0);
+				63 - Long.numberOfLeadingZeros(to), (eatingAdvPion) != 0);
 		mPions ^= move;
 		mPionsAdv &= (-1L ^ to);
+
+		return eatingAdvPion;
+
 	}
 
 	public void coupAdvAndUpdate(long move) {
@@ -591,6 +642,21 @@ public class Grid {// implements Runnable{
 		}
 	}
 
+	private void replaceAdvPion(long advPion) {
+		if (advPion != 0) {
+
+			this.mPionsAdv |= advPion;
+
+			int toUpdate = 63 - Long.numberOfLeadingZeros(advPion);
+			++LOA_LIGNES.get(toUpdate).value;
+			++LOA_COLUMNS.get(toUpdate).value;
+			++LOA_DIAGONAL_RIGHT.get(toUpdate).value;
+			++LOA_DIAGONAL_LEFT.get(toUpdate).value;
+
+		}
+
+	}
+
 	private class ReferencedByte {
 		private byte value = 0;
 
@@ -601,72 +667,19 @@ public class Grid {// implements Runnable{
 
 	}
 
-	private int alphabeta = 0;
-	private Long bestMvt = 0L;
+	// nbNoeuds++;
 
-	public void calcule(int lvl) {
+	// System.out.println("lvl=" + lvl);
 
-		// System.out.println("lvl=" + lvl);
-
-		// int taille = coups.size();
-		// int random = (int) (Math.random()*taille);
-		// System.out.println("bestMvt random:");
-		// printBits(coups.get(random));
-
-		if (this.isConnected(mPions)) { // valable aussi pour match nul !!!
-			this.alphabeta = 100;
-			return;
-		} else if (this.isConnected(mPionsAdv)) {
-			this.alphabeta = -100;
-			return;
-		} else {
-			this.alphabeta = 0;
-		}
-
-		ArrayList<Long> coups = generatePossibleMvt();
-
-		if (lvl == 0) {
-			return;
-		}
-
-		for (long move : coups) {
-
-			Grid gridAdv = new Grid(this);
-
-			gridAdv.coupAdvAndUpdate(move);
-
-			this.alphabeta = ((-gridAdv.alphabeta) < this.alphabeta) ? gridAdv.alphabeta
-					: this.alphabeta;
-			// System.out.println("alphabeta=" + this.alphabeta);
-
-			if (this.alphabeta == 100) {
-				this.bestMvt = move;
-
-				return;
-			}
-
-			if (this.alphabeta == -100) {
-				return;
-			}
-
-			if (this.alphabeta == 0)
-				gridAdv.calcule(lvl - 1);
-
-		}
-
-	}
-
-	// private static long bestMvt = 0;
-
-	// public void calcule(int lvl) {
+	// int taille = coups.size();
+	// int random = (int) (Math.random()*taille);
+	// System.out.println("bestMvt random:");
+	// printBits(coups.get(random));
 	//
-	// // System.out.println("lvl=" + lvl);
-	//
-	// // int taille = coups.size();
-	// // int random = (int) (Math.random()*taille);
-	// // System.out.println("bestMvt random:");
-	// // printBits(coups.get(random));
-	//
+	// if (alphabeta == 100) {
+	// return;
+	// }
+
 	// if (this.isConnected(mPions)) { // valable aussi pour match nul !!!
 	// this.alphabeta = 100;
 	// return;
@@ -704,33 +717,144 @@ public class Grid {// implements Runnable{
 	// return;
 	// }
 	//
-	// if (this.alphabeta == 0)
+	// if (this.alphabeta == 0) {
 	// gridAdv.calcule(lvl - 1);
 	//
 	// }
 	//
 	// }
+	private static Stack<Integer> alphabetas;
 
-	private static int nbcoupaleatoire = 0;
+	private static Stack<Long> bestMoves;
 
-	public String getBestMove(int lvl) {
+	// private static long nbNoeuds;
 
-		this.bestMvt = 0L;
-		calcule(lvl);
+	public void calcule(int lvl) {
 
-		if (this.bestMvt == 0L) {
-			ArrayList<Long> coups = generatePossibleMvt();
-			System.out.println(nbcoupaleatoire++);
-			this.bestMvt = coups.get((int) (Math.random() * coups.size()));
+		int beta = NO_HEURISTIQUE;
+
+		if (!alphabetas.isEmpty()) {
+			beta = alphabetas.pop();
+
+			if (beta != NO_HEURISTIQUE)
+				beta = -beta;
 
 		}
 
-		System.out.println("-------------");
+		int alpha = calculHeuristique();
+
+		if (alpha == MAX_HEURISTIQUE | alpha == MIN_HEURISTIQUE) {
+			if (alpha < beta)
+				bestMoves.clear();
+
+			beta = alpha;
+
+			alphabetas.push(beta);
+
+			return;
+		}
+
+		if (lvl <= 0) {
+			if (beta == NO_HEURISTIQUE | alpha < beta) {
+
+				bestMoves.clear();
+				nbfeuilles++;
+
+			}
+
+		} else {
+
+			alpha = NO_HEURISTIQUE;
+
+			ArrayList<Long> coups = generatePossibleMvt();
+
+			for (long move : coups) {
+
+				// application du mouvement
+				long pionAdvEating = this.MakeMvtAndUpdate(move);
+
+				if (alpha != MAX_HEURISTIQUE & alpha != MIN_HEURISTIQUE) {
+					alphabetas.push(alpha);
+				}
+
+				this.inverse();
+
+				calcule(lvl - 1);
+
+				this.inverse();
+
+				this.MakeMvtAndUpdate(move);
+
+				this.replaceAdvPion(pionAdvEating);
+
+				int alphaTmp = -alphabetas.pop();
+
+				if (alpha != alphaTmp) {
+					alpha = alphaTmp;
+					bestMoves.push(move);
+
+					if (beta != NO_HEURISTIQUE & alpha > beta)
+						break;
+				}
+
+				if (alpha == MAX_HEURISTIQUE | alpha == MIN_HEURISTIQUE) {
+
+					bestMoves.push(move);
+
+					break;
+				}
+
+			}
+
+		}
+
+		beta = alpha;
+
+		alphabetas.push(beta);
+	}
+
+	private final static int MAX_HEURISTIQUE = Integer.MAX_VALUE;
+	private final static int MIN_HEURISTIQUE = Integer.MIN_VALUE + 1;
+	private final static int NO_HEURISTIQUE = Integer.MIN_VALUE;
+
+	private int calculHeuristique() {
+		int heuristique = 0;
+
+		if (this.isConnected(mPions)) { // valable aussi pour match nul !!!
+			heuristique += 100;
+		} else if (this.isConnected(mPionsAdv)) {
+			heuristique -= 100;
+		}
+
+		return heuristique;
+	}
+
+	private static int nbcoupNONaleatoire = 0;
+	private static int nbfeuilles;
+
+	public String getBestMove(int lvl) {
+		nbfeuilles = 0;
+		alphabetas = new Stack<Integer>();
+		// nbNoeuds = 0L;
+
+		calcule(lvl);
+
+		System.out.println("nbfeuilles=" + nbfeuilles);
+
+		Long bestMvt = bestMoves.pop();
+
+		if (bestMoves.isEmpty()) {
+			ArrayList<Long> coups = generatePossibleMvt();
+			bestMvt = coups.get((int) (Math.random() * coups.size()));
+		} else {
+			System.out.println("nbcoupNONaleatoire=" + ++nbcoupNONaleatoire);
+		}
+		// System.out.println("-------------");
 		// printBits(bestMvt);
 		// printBits(mPions);
 		// printBits(mPionsAdv);
 		// pringLOAs();
-		long fromLong = mPions & this.bestMvt;
+		long fromLong = mPions & bestMvt;
 		long toLong = bestMvt ^ fromLong;
 		int from = 63 - Long.numberOfLeadingZeros(fromLong);
 		int to = 63 - Long.numberOfLeadingZeros(toLong);
@@ -740,7 +864,7 @@ public class Grid {// implements Runnable{
 		 * long to = move^from;
 		 */
 		MakeMvtAndUpdate(bestMvt);
-		System.out.println("from=" + from + " to=" + to);
+		// System.out.println("from=" + from + " to=" + to);
 
 		// updateLOAs(63-Long.numberOfLeadingZeros(from),
 		// 63-Long.numberOfLeadingZeros(to));
@@ -752,8 +876,8 @@ public class Grid {// implements Runnable{
 		res[2] = (char) ('A' + (7 - (to % 8)));
 		res[3] = (char) ('1' + (to / 8));
 
-		System.out.println("" + res[0] + res[1] + res[2] + res[3]);
-		System.out.println("-------------");
+		// System.out.println("" + res[0] + res[1] + res[2] + res[3]);
+		// System.out.println("-------------");
 		// String fromletter = String.valueOf(((char) ('H' - (from%8))) +
 		// ((char)'1' + (from/8)));
 		// String toletter = String.valueOf(((char) ('H' - (to%8))) + ((char)'1'

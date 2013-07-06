@@ -19,6 +19,8 @@ public class Messages {
 
 	}
 
+	long start;
+
 	public void getCoup() {
 		// Thread th = new Thread(mGrid);
 		// th.start();
@@ -38,11 +40,19 @@ public class Messages {
 		// System.out.println(mGrid.getBestMove());
 		// return mGrid.getBestMove();
 
+		start = System.nanoTime();
+
 	}
 
 	public void setCoup(String coup) {
 
 		mClient.envoieCoup(coup);
+
+		long end = System.nanoTime();
+		float time = end - start;
+
+		System.out.println("time s= " + time / 1000000000 + " mls=" + time
+				+ 1000000 + " mcs=" + time / 1000 + " ns=" + time);
 
 	}
 
@@ -72,7 +82,8 @@ public class Messages {
 		@Override
 		public void run() {
 			// mGrid.getBestMove(3);
-			msg.setCoup(mGrid.getBestMove(3));
+			msg.setCoup(mGrid.getBestMove(4));
+			System.gc();
 		}
 	}
 }

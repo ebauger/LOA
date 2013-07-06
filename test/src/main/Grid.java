@@ -779,6 +779,78 @@ public class Grid {// implements Runnable{
 
 	public void calcule(int lvl) {
 
+		int beta = NO_HEURISTIQUE;
+
+		if (!alphabetas.isEmpty()) {
+			beta = alphabetas.pop();
+
+			beta = negateHeuristique(beta);
+
+		}
+		
+
+		int alpha = calculHeuristique();
+
+		if (alpha == MAX_HEURISTIQUE) {
+			if (alpha < beta)
+				bestMoves.clear();
+
+			beta = alpha;
+
+			alphabetas.push(beta);
+
+			return;
+		}
+
+		if (lvl <= 0) {
+			if (beta == NO_HEURISTIQUE | alpha < beta) {
+
+				bestMoves.clear();
+				nbfeuilles++;
+
+			}
+
+		} else {
+
+			alpha = NO_HEURISTIQUE;
+
+			ArrayList<Long> coups = generatePossibleMvt();
+
+			for (long move : coups) {
+
+				Grid gridAdv = new Grid(this);
+
+				gridAdv.coupAdvAndUpdate(move);
+
+				if (alpha != MAX_HEURISTIQUE & alpha != MIN_HEURISTIQUE) {
+					alphabetas.push(alpha);
+				}
+
+				gridAdv.calcule(lvl - 1);
+
+				int alphaTmp = negateHeuristique(alphabetas.pop());
+
+				if (alpha != alphaTmp) {
+					alpha = alphaTmp;
+					bestMoves.push(move);
+
+					if (alpha == MAX_HEURISTIQUE) {
+
+						bestMoves.push(move);
+
+						break;
+					} else if (beta != NO_HEURISTIQUE & alpha > beta) {
+						break;
+					}
+				}
+
+			}
+
+		}
+
+		beta = alpha;
+
+		alphabetas.push(beta);
 	}
 
 	private final static int MAX_HEURISTIQUE = Integer.MAX_VALUE;

@@ -68,7 +68,7 @@ public class Messages {
 		@Override
 		public void run() {
 			// mGrid.getBestMove(3);
-			msg.setCoup(mGrid.getBestMove(3));
+			msg.setCoup(mGrid.getBestMove(4));
 			System.gc();
 		}
 	}

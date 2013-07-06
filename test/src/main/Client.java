@@ -45,6 +45,7 @@ class Client extends Thread {
 
 				// Début de la partie en joueur blanc
 				if (cmd == '1') {
+					
 					byte[] aBuffer = new byte[1024];
 
 					int size = input.available();
@@ -132,7 +133,7 @@ class Client extends Thread {
 
 	public void envoieCoup(String coup) {
 		try {
-			System.out.println(coup);
+			
 			output.write(coup.getBytes(), 0, coup.length());
 			output.flush();
 		} catch (IOException e) {

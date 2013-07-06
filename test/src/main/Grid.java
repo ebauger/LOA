@@ -240,7 +240,7 @@ public class Grid {// implements Runnable{
 		// + condition si 1L<<i et pions != 0
 		long totalPions = mPions|mPionsAdv;
 		for (int i = 63; i >= 0; --i) {
-			if ((1L << i & mPions) != 0) {
+			if ((1L << i & mPions) != 0) { // si on a un de nos pion
 				
 				int actionLine = COMPTEUR.get(totalPions & LOA_MASK_LINES.get(i));
 				int actionCol = COMPTEUR.get(totalPions & LOA_MASK_COLUMNS.get(i));
@@ -404,6 +404,8 @@ public class Grid {// implements Runnable{
 
 	public static void init() {
 
+		bestMoves = new Stack<Long>();
+		
 		//mStackMvts = new Stack<Stack<Long>>();
 		//mStackGame = new Stack<Grid>();
 		//ArrayList<ReferencedByte> lignes = new ArrayList<ReferencedByte>(8);
@@ -432,7 +434,7 @@ public class Grid {// implements Runnable{
 		
 		//72340172838076673L = 0000000100000001000000010000000100000001000000010000000100000001
 		for(int i = 0; i< 64; ++i){
-			LOA_MASK_LINES.put(i, 255L<<i*8);
+			LOA_MASK_LINES.put(i, 255L<<((i/8)*8));
 			//printBits(255L<<i*8);
 			LOA_MASK_COLUMNS.put(i,72340172838076673L << i%8);
 			
@@ -689,11 +691,11 @@ public class Grid {// implements Runnable{
 		MASK = new HashMap<Integer, Long>();
 		for (int i = 0; i < 64; ++i) {
 			if (i % 8 == 0) { // bord de droite
-				MASK.put(i, 1L << i + 1 | 3L << i + 7
+				MASK.put(i, 1L << i + 1 |  ((i + 8 < 64) ? 3L << i + 8 : 0)
 						| ((i - 8 >= 0) ? 3L << i - 8 : 0));
 			} else if ((i + 1) % 8 == 0) {// bord de gauche
 				MASK.put(i, (i + 7 < 64 ? 3L << i + 7 : 0) | 1L << i - 1
-						| 3L << i - 9);
+						|  ((i - 8 >= 0) ? 3L << i - 9 : 0));
 			} else {// general
 				MASK.put(i, 1L << i + 1 | (i + 7 < 64 ? 7L << i + 7 : 0L)
 						| 1L << i - 1 | (i - 9 >= 0 ? 7L << i - 9 : 0));
@@ -893,7 +895,9 @@ public class Grid {// implements Runnable{
 		nbfeuilles = 0;
 		alphabetas = new Stack<Integer>();
 		// nbNoeuds = 0L;
-
+		
+		bestMoves.clear();
+		
 		calcule(lvl);
 
 		System.out.println("nbfeuilles=" + nbfeuilles);
@@ -904,8 +908,11 @@ public class Grid {// implements Runnable{
 			ArrayList<Long> coups = generatePossibleMvt();
 			bestMvt = coups.get((int) (Math.random() * coups.size()));
 		} else {
-			System.out.println("nbcoupNONaleatoire=" + ++nbcoupNONaleatoire);
+			++nbcoupNONaleatoire;
 		}
+		
+		System.out.println("nbcoupNONaleatoire=" + ++nbcoupNONaleatoire);
+		
 		// System.out.println("-------------");
 		// printBits(bestMvt);
 		// printBits(mPions);
@@ -916,7 +923,7 @@ public class Grid {// implements Runnable{
 		int from = 63 - Long.numberOfLeadingZeros(fromLong);
 		int to = 63 - Long.numberOfLeadingZeros(toLong);
 		
-		MakeMvtAndUpdate(bestMvt);
+		
 		// System.out.println("from=" + from + " to=" + to);
 
 		// updateLOAs(63-Long.numberOfLeadingZeros(from),
@@ -935,8 +942,35 @@ public class Grid {// implements Runnable{
 		// ((char)'1' + (from/8)));
 		// String toletter = String.valueOf(((char) ('H' - (to%8))) + ((char)'1'
 		// + (to/8)));
-
-		return "" + res[0] + res[1] + res[2] + res[3];
+		
+		String coup = "" + res[0] + res[1] + res[2] + res[3];
+		
+		long totalPions = mPions|mPionsAdv;
+		
+		
+		int actionLine = COMPTEUR.get(totalPions & LOA_MASK_LINES.get(from));
+		int actionCol = COMPTEUR.get(totalPions & LOA_MASK_COLUMNS.get(from));
+		int actionDR = COMPTEUR.get(totalPions & LOA_MASK_DR.get(from));
+		int actionDL = COMPTEUR.get(totalPions & LOA_MASK_DL.get(from));
+		
+		
+		
+		System.out.println("coup=" + coup +" from=" + from +" to="+ to + "\n" +
+						" move=     " + Long.toBinaryString(bestMvt | 1L << 63)+ "\n" +
+						" mPions=   " +Long.toBinaryString(mPions | 1L << 63) + "\n" +
+						" fromLong= " + Long.toBinaryString(fromLong | 1L << 63) + "\n" +
+						" toLong=   " + Long.toBinaryString(toLong | 1L << 63) + "\n" +
+						" actionLine= " + actionLine +"\n"+
+						" actionCol=  " + actionCol +"\n"+
+						" actionDR=   " + actionDR +"\n"+
+						" actionDL=   " + actionDL
+				
+				);
+		
+		
+		MakeMvtAndUpdate(bestMvt);
+		
+		return coup;
 	}
 
 	// @Override

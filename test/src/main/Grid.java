@@ -561,11 +561,11 @@ public class Grid {// implements Runnable{
 		MASK = new HashMap<Integer, Long>();
 		for (int i = 0; i < 64; ++i) {
 			if (i % 8 == 0) { // bord de droite
-				MASK.put(i, 1L << i + 1 | 3L << i + 7
+				MASK.put(i, 1L << i + 1 | ((i + 8 < 64) ? 3L << i + 8 : 0)
 						| ((i - 8 >= 0) ? 3L << i - 8 : 0));
 			} else if ((i + 1) % 8 == 0) {// bord de gauche
-				MASK.put(i, (i + 7 < 64 ? 3L << i + 7 : 0) | 1L << i - 1
-						| 3L << i - 9);
+				MASK.put(i, (i + 8 < 64 ? 3L << i + 7 : 0) | 1L << i - 1
+						| ((i - 8 >= 0) ? 3L << i - 9 : 0));
 			} else {// general
 				MASK.put(i, 1L << i + 1 | (i + 7 < 64 ? 7L << i + 7 : 0L)
 						| 1L << i - 1 | (i - 9 >= 0 ? 7L << i - 9 : 0));
@@ -736,14 +736,13 @@ public class Grid {// implements Runnable{
 		if (!alphabetas.isEmpty()) {
 			beta = alphabetas.pop();
 
-			if (beta != NO_HEURISTIQUE)
-				beta = -beta;
+			beta = negateHeuristique(beta);
 
 		}
 
 		int alpha = calculHeuristique();
 
-		if (alpha == MAX_HEURISTIQUE | alpha == MIN_HEURISTIQUE) {
+		if (alpha == MAX_HEURISTIQUE) {
 			if (alpha < beta)
 				bestMoves.clear();
 
@@ -787,21 +786,20 @@ public class Grid {// implements Runnable{
 
 				this.replaceAdvPion(pionAdvEating);
 
-				int alphaTmp = -alphabetas.pop();
+				int alphaTmp = negateHeuristique(alphabetas.pop());
 
 				if (alpha != alphaTmp) {
 					alpha = alphaTmp;
 					bestMoves.push(move);
 
-					if (beta != NO_HEURISTIQUE & alpha > beta)
+					if (alpha == MAX_HEURISTIQUE) {
+
+						bestMoves.push(move);
+
 						break;
-				}
-
-				if (alpha == MAX_HEURISTIQUE | alpha == MIN_HEURISTIQUE) {
-
-					bestMoves.push(move);
-
-					break;
+					} else if (beta != NO_HEURISTIQUE & alpha > beta) {
+						break;
+					}
 				}
 
 			}
@@ -820,13 +818,30 @@ public class Grid {// implements Runnable{
 	private int calculHeuristique() {
 		int heuristique = 0;
 
-		if (this.isConnected(mPions)) { // valable aussi pour match nul !!!
+		if (this.isConnected(mPions) & this.isConnected(mPionsAdv)) {
+			heuristique += 50;
+		} else if (this.isConnected(mPions)) { // valable aussi pour match nul
+												// !!!
 			heuristique += 100;
 		} else if (this.isConnected(mPionsAdv)) {
 			heuristique -= 100;
 		}
 
 		return heuristique;
+	}
+
+	private int negateHeuristique(int heuristique) {
+		if (heuristique == MAX_HEURISTIQUE) {
+			return MIN_HEURISTIQUE;
+		}
+
+		if (heuristique == MIN_HEURISTIQUE)
+			return MAX_HEURISTIQUE;
+
+		if (heuristique == NO_HEURISTIQUE)
+			return NO_HEURISTIQUE;
+
+		return -heuristique;
 	}
 
 	private static int nbcoupNONaleatoire = 0;

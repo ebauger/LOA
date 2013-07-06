@@ -103,7 +103,7 @@ class Client extends Thread {
 					input.read(aBuffer, 0, size);
 
 					String s = new String(aBuffer);
-					System.out.println("Dernier coup : " + s);
+					System.out.println("Dernier coup :\n " + s);
 
 					mMessages.setCoupAdversaire(s);
 
@@ -116,7 +116,7 @@ class Client extends Thread {
 				}
 				// Le dernier coup est invalide
 				if (cmd == '4') {
-					System.out
+					System.err
 							.println("Coup invalide, entrez un nouveau coup : ");
 					// String move = null;
 					// mMessages.printlnLOAs();

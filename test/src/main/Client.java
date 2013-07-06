@@ -31,7 +31,7 @@ class Client extends Thread {
 
 	@Override
 	public void run() {
-
+		Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
 		// int[][] board = new int[8][8];
 		try {
 

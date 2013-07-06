@@ -20,23 +20,11 @@ public class Messages {
 	}
 
 	public void getCoup() {
-		// Thread th = new Thread(mGrid);
-		// th.start();
 
 		Thread r = new Rototo(this);
 		r.start();
 
-		// do what you want to do before sleeping
-		// try {
-		// Thread.currentThread().sleep(200);
-		// } catch (InterruptedException e) {
-		// // TODO Auto-generated catch block
-		// e.printStackTrace();
-		// }//sleep for 1000 ms
-		// do what you want to do after sleeptig
-
-		// System.out.println(mGrid.getBestMove());
-		// return mGrid.getBestMove();
+		
 
 	}
 

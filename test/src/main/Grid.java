@@ -27,14 +27,14 @@ public class Grid {// implements Runnable{
 
 	
 
-	private final Map<Integer, ReferencedByte> LOA_LIGNES = new HashMap<Integer, ReferencedByte>(
+	/*private final Map<Integer, ReferencedByte> LOA_LIGNES = new HashMap<Integer, ReferencedByte>(
 			64);
 	private final Map<Integer, ReferencedByte> LOA_COLUMNS = new HashMap<Integer, ReferencedByte>(
 			64);
 	private final Map<Integer, ReferencedByte> LOA_DIAGONAL_RIGHT = new HashMap<Integer, ReferencedByte>(
 			64);
 	private final Map<Integer, ReferencedByte> LOA_DIAGONAL_LEFT = new HashMap<Integer, ReferencedByte>(
-			64);
+			64);*/
 
 	private static final Map<Long, Long> MASK_MOVEMENT = new HashMap<Long, Long>(
 			2016);
@@ -43,7 +43,7 @@ public class Grid {// implements Runnable{
 		this.mPions = g.mPionsAdv;
 		this.mPionsAdv = g.mPions;
 
-		ArrayList<ReferencedByte> lignes = new ArrayList<ReferencedByte>(8);
+		/*ArrayList<ReferencedByte> lignes = new ArrayList<ReferencedByte>(8);
 		ArrayList<ReferencedByte> columns = new ArrayList<ReferencedByte>(8);
 		ArrayList<ReferencedByte> diagR = new ArrayList<ReferencedByte>(15);
 		ArrayList<ReferencedByte> diagL = new ArrayList<ReferencedByte>(15);
@@ -79,7 +79,7 @@ public class Grid {// implements Runnable{
 			this.LOA_DIAGONAL_LEFT.get(i).value = g.LOA_DIAGONAL_LEFT.get(i).value;
 			this.LOA_DIAGONAL_LEFT.get(i * 8).value = g.LOA_DIAGONAL_LEFT
 					.get(i * 8).value;
-		}
+		}*/
 
 	}
 
@@ -95,17 +95,17 @@ public class Grid {// implements Runnable{
 			for (char c : str.toCharArray()) {
 				if (c == '4') {
 					pionsWhite |= (long) 1 << 63 - offset;
-					++LOA_LIGNES.get(63 - offset).value;
+					/*++LOA_LIGNES.get(63 - offset).value;
 					++LOA_COLUMNS.get(63 - offset).value;
 					++LOA_DIAGONAL_RIGHT.get(63 - offset).value;
-					++LOA_DIAGONAL_LEFT.get(63 - offset).value;
+					++LOA_DIAGONAL_LEFT.get(63 - offset).value;*/
 
 				} else if (c == '2') {
 					pionsBlack |= (long) 1 << 63 - offset;
-					++LOA_LIGNES.get(63 - offset).value;
+					/*++LOA_LIGNES.get(63 - offset).value;
 					++LOA_COLUMNS.get(63 - offset).value;
 					++LOA_DIAGONAL_RIGHT.get(63 - offset).value;
-					++LOA_DIAGONAL_LEFT.get(63 - offset).value;
+					++LOA_DIAGONAL_LEFT.get(63 - offset).value;*/
 				}
 
 				++offset;
@@ -186,10 +186,21 @@ public class Grid {// implements Runnable{
 
 	public static void printBits() {
 
-		printBits(LOA_MASK_DR.get(62));
+		/*printBits(LOA_MASK_DR.get(62));
 		printBits(LOA_MASK_DL.get(12));
 		printBits(1L<<3 | 1L<<11 | 1L<<51);
 		System.out.println(COMPTEUR.get(1L<<3 | 1L<<11 | 1L<<51));
+		System.out.println(COMPTEUR.get(1L<<3 | 1L<<10 | 1L<<24));
+		System.out.println(COMPTEUR.get(1L<<30 | 1L<<44 | 1L<<51));
+		System.out.println(COMPTEUR.get(1L<<13 | 1L<<27 | 1L<<34 | 1L<<48));
+		System.out.println(COMPTEUR.get(1L<<23 | 1L<<5));
+		System.out.println(COMPTEUR.get(1L<<55 | 1L<<37 | 1L<<28));
+		System.out.println(COMPTEUR.get(1L<<24 | 1L<<60 | 1L<<33 | 1L <<42));
+		System.out.println(COMPTEUR.get(1L<<63 | 1L<<18));*/
+		System.out.println(COMPTEUR.get(1L<<62 | 1L<<55));
+		System.out.println(COMPTEUR.get(1L<<38 | 1L<<45));
+		System.out.println(COMPTEUR.get(1L<<39 | 1L<<60));
+		System.out.println(COMPTEUR.get(1L<<47 | 1L<<61));
 
 	}
 
@@ -203,10 +214,44 @@ public class Grid {// implements Runnable{
 
 		// parcour chaque bits (boucle de 64)
 		// + condition si 1L<<i et pions != 0
-
+		long totalPions = mPions|mPionsAdv;
 		for (int i = 63; i >= 0; --i) {
-
 			if ((1L << i & mPions) != 0) {
+				
+				int actionLine = COMPTEUR.get(totalPions & LOA_MASK_LINES.get(i));
+				int actionCol = COMPTEUR.get(totalPions & LOA_MASK_COLUMNS.get(i));
+				int actionDR = COMPTEUR.get(totalPions & LOA_MASK_DR.get(i));
+				int actionDL = COMPTEUR.get(totalPions & LOA_MASK_DL.get(i));
+				if(((1L << i + actionLine) & LOA_MASK_LINES.get(i)) != 0){
+					possMvt.add(1L << i | 1L << i+actionLine);
+				}
+				if(((1L << i - actionLine) & LOA_MASK_LINES.get(i)) != 0){
+					possMvt.add(1L << i | 1L << i-actionLine);
+				}
+				
+				if(((1L << i + 8*actionCol) & LOA_MASK_COLUMNS.get(i)) != 0){
+					possMvt.add(1L << i | 1L << i+ 8*actionCol);
+				}
+				if(((1L << i - 8*actionCol) & LOA_MASK_COLUMNS.get(i)) != 0){
+					possMvt.add(1L << i | 1L << i-8*actionCol);
+				}
+				
+				if(((1L << i + 7*actionDR) & LOA_MASK_DR.get(i)) != 0){
+					possMvt.add(1L << i | 1L << i+7*actionDR);
+				}
+				if(((1L << i - 7*actionDR) & LOA_MASK_DR.get(i)) != 0){
+					possMvt.add(1L << i | 1L << i-7*actionDR);
+				}
+				
+				if(((1L << i + 9*actionDL) & LOA_MASK_DL.get(i)) != 0){
+					possMvt.add(1L << i | 1L << i+9*actionDL);
+				}
+				if(((1L << i - 9*actionDL) & LOA_MASK_DL.get(i)) != 0){
+					possMvt.add(1L << i | 1L << i-9*actionDL);
+				}
+				
+			}
+			/*if ((1L << i & mPions) != 0) {
 
 				int currentY = i / 8;
 				int currentX = i % 8;
@@ -315,7 +360,7 @@ public class Grid {// implements Runnable{
 
 				// possMvt.add(maskPion);
 
-			}
+			}*/
 		}
 
 		return possMvt;
@@ -356,7 +401,8 @@ public class Grid {// implements Runnable{
 		
 		//72340172838076673L = 0000000100000001000000010000000100000001000000010000000100000001
 		for(int i = 0; i< 64; ++i){
-			LOA_MASK_LINES.put(i, 255L<<i/8);
+			LOA_MASK_LINES.put(i, 255L<<i*8);
+			//printBits(255L<<i*8);
 			LOA_MASK_COLUMNS.put(i,72340172838076673L << i%8);
 			
 		}
@@ -465,21 +511,60 @@ public class Grid {// implements Runnable{
 				int bitCount = Long.bitCount(i);
 				COMPTEUR.put(i << j*8, bitCount);
 				long keyCol = 0;
-				
+				//long keyDR = 0;
+				//long keyDR2 = 0;
+				//long keyDL = 0;
 				for(int idx = 0; idx < 8; ++idx){
 					if((i & (1L << idx)) != 0){
-						keyCol |= 1L << idx*8; 
+						keyCol |= 1L << idx*8;
+						//keyDR |= 1L >>> idx;
+						//keyDR2 |= 1L << idx;
 					}
 				}
+				
+				
 				COMPTEUR.put(keyCol<<j, bitCount);
-				//printBits(keyCol<<j);
+				/*keyDR = keyDR<<j & LOA_MASK_DR.get(j);
+				COMPTEUR.put(keyDR, Long.bitCount(keyDR));
+				keyDR2 = keyDR2<<j & LOA_MASK_DR.get(j);
+				COMPTEUR.put(keyDR2, Long.bitCount(keyDR2));
+				//COMPTEUR.put(keyDL, bitCount);
+				printBits(keyDR);*/
 			}
 			
-			long keyDR = 0;
-			long keyDL = 0;
-			//COMPTEUR.put(keyDR, bitCount);
-			//COMPTEUR.put(keyDL, bitCount);
 			
+		}
+		int j = 1;
+		for(long i = 2L ; i<257L; i *=2L){  //2, 4, 8, 16 etc  ex 32
+			//System.out.println(i+" "+j);
+			for(long idx = 0; idx < i ; ++idx){  // de 0 ˆ 32-1
+				long keyDR = 0;
+				long keyDR2 = 0;
+				long keyDL = 0;
+				long keyDL2 = 0;
+				for(int k = 0; k<i; ++k){
+					if((idx & (1L << k)) != 0){
+						keyDR |= 1L<< k*8 + j-k-1;
+						keyDR2 |= 1L << (7-k)*8 + 8-j+k;
+						keyDL |= 1L<< k*8 + 8- j+k ;
+						keyDL2 |= 1L << (7-k)*8 -k+j-1;
+						//System.out.println((7-k)*8 + 8-j+k);
+						
+					}
+				}
+				
+				
+				//printBits(keyDR2);
+				COMPTEUR.put(keyDR, Long.bitCount(keyDR));
+				COMPTEUR.put(keyDR2, Long.bitCount(keyDR2));
+				COMPTEUR.put(keyDL, Long.bitCount(keyDL));
+				COMPTEUR.put(keyDL2, Long.bitCount(keyDL2));
+			}
+			//keyDR = keyDR & LOA_MASK_DR.get(j);
+			
+			//keyDR2 = keyDR2<<j & LOA_MASK_DR.get(j);
+			//COMPTEUR.put(keyDR2, Long.bitCount(keyDR2));
+			++j;
 		}
 		
 		
@@ -608,8 +693,8 @@ public class Grid {// implements Runnable{
 		long from = mPions & move;
 		// printBits(mPions);
 		long to = move ^ from;
-		updateLOAs(63 - Long.numberOfLeadingZeros(from),
-				63 - Long.numberOfLeadingZeros(to), (mPionsAdv & to) != 0);
+		//updateLOAs(63 - Long.numberOfLeadingZeros(from),
+				//63 - Long.numberOfLeadingZeros(to), (mPionsAdv & to) != 0);
 		mPions ^= move;
 		mPionsAdv &= (-1L ^ to);
 	}
@@ -627,7 +712,7 @@ public class Grid {// implements Runnable{
 		mPionsAdv = temp;
 	}
 
-	public void updateLOAs(int from, int to, boolean eat) {
+	/*public void updateLOAs(int from, int to, boolean eat) {
 		// System.out.println("from="+(63-Long.numberOfLeadingZeros(from)));
 		// System.out.println("from="+from+" to="+to);
 		--LOA_LIGNES.get(from).value;
@@ -641,9 +726,9 @@ public class Grid {// implements Runnable{
 			++LOA_DIAGONAL_RIGHT.get(to).value;
 			++LOA_DIAGONAL_LEFT.get(to).value;
 		}
-	}
+	}*/
 
-	private class ReferencedByte {
+	/*private class ReferencedByte {
 		private byte value = 0;
 
 		@Override
@@ -651,7 +736,7 @@ public class Grid {// implements Runnable{
 			return value + "";
 		}
 
-	}
+	}*/
 
 	private int alphabeta = 0;
 	private Long bestMvt = 0L;
@@ -741,12 +826,12 @@ public class Grid {// implements Runnable{
 
 
 
-	public void pringLOAs() {
+	/*public void pringLOAs() {
 		System.out.println();
 		System.out.println(LOA_COLUMNS);
 		System.out.println(LOA_LIGNES);
 		System.out.println(LOA_DIAGONAL_RIGHT);
 		System.out.println(LOA_DIAGONAL_LEFT);
-	}
+	}*/
 
 }

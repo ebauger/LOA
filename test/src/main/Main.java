@@ -22,10 +22,10 @@ public class Main {
 		 "00000000", 1,0);*/
 		 
 		 Grid.init();
-		Grid.printBits();
+		//Grid.printBits();
 		
 
-		//mMessages = new Messages();
+		mMessages = new Messages();
 		
 	/*long result = 0;
 	for(int i = 0; i<8;++i){

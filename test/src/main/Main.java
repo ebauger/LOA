@@ -1,5 +1,7 @@
 package main;
 
+import java.io.IOException;
+
 public class Main {
 
 	private Grid mGrid;
@@ -9,8 +11,9 @@ public class Main {
 
 	/**
 	 * @param args
+	 * @throws IOException 
 	 */
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		/* Grid grid = new Grid(
 		 "12211100" +
 		 "01100010" +
@@ -24,8 +27,12 @@ public class Main {
 		 Grid.init();
 		//Grid.printBits();
 		
-
+		 
+		 System.out.println("Ready to play ?");
+		 System.in.read();
+		 
 		mMessages = new Messages();
+	
 		
 	/*long result = 0;
 	for(int i = 0; i<8;++i){

@@ -5,7 +5,8 @@ public class Messages {
 	public final static int White = 4;
 	public final static int Black = 2;
 
-	private Grid mGrid;
+	//private NegaMaxPrud mGrid;
+	private NegaMaxPrudTranspositionTable mGridTT;
 	private Client mClient;
 
 	public Messages() {
@@ -15,18 +16,20 @@ public class Messages {
 	}
 
 	public void playWith(String pions, int color) {
-		mGrid = new Grid(pions, Grid.TYPE_DECODE_SERVER, color);
-
+		//mGrid = new NegaMaxPrud(pions, Grid.TYPE_DECODE_SERVER, color);
+		mGridTT = new NegaMaxPrudTranspositionTable(pions, Grid.TYPE_DECODE_SERVER, color);
+		
+		mGridTT.printGame();
 	}
 
-	long start;
+//	long start;
 
 	public void getCoup() {
 
 		Thread r = new Rototo(this);
 		r.start();
 
-		start = System.nanoTime();
+//		start = System.nanoTime();
 
 	}
 
@@ -34,11 +37,11 @@ public class Messages {
 
 		mClient.envoieCoup(coup);
 
-		long end = System.nanoTime();
-		float time = end - start;
-
-		System.out.println("time s= " + time / 1000000000 + " mls=" + time
-				+ 1000000 + " mcs=" + time / 1000 + " ns=" + time);
+//		long end = System.nanoTime();
+//		float time = end - start;
+//
+//		System.out.println("time s= " + time / 1000000000 + " mls=" + time
+//				+ 1000000 + " mcs=" + time / 1000 + " ns=" + time);
 
 	}
 
@@ -50,7 +53,7 @@ public class Messages {
 
 		// mGrid.printBits(move);
 
-		mGrid.coupAdvAndUpdate(move);
+		mGridTT.coupAdvAndUpdate(move,true);
 
 	}
 
@@ -68,7 +71,7 @@ public class Messages {
 		@Override
 		public void run() {
 			// mGrid.getBestMove(3);
-			msg.setCoup(mGrid.getBestMove(4));
+			msg.setCoup(mGridTT.getBestMove(5));
 			System.gc();
 		}
 	}

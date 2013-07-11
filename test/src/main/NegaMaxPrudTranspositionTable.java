@@ -235,12 +235,12 @@ public class NegaMaxPrudTranspositionTable extends NegaMaxPrud {
 		
 		nbEntryTransReuse = 0;
 		
-//		if(tableDeTransposition.size()>30000)
+//		if(tableDeTransposition.size()>100000)
 //			lvl+=2;
 //		else 
-		if(tableDeTransposition.size()>7000)
-			lvl++;
-		
+//		if(tableDeTransposition.size()>7000)
+//			lvl++;
+//		
 		
 		System.out.println("MAX Profondeur = "+ lvl);
 		
@@ -285,6 +285,8 @@ public class NegaMaxPrudTranspositionTable extends NegaMaxPrud {
 		System.out.println("Coup Aleatoire	     = 	" + nbcoupAleatoire);
 		System.out.println("\ntaille table de transposage     = 	" + NegaMaxPrudTranspositionTable.tableDeTransposition.size());
 		System.out.println("	reutilisées      = 	" + nbEntryTransReuse);
+		System.out.println("\nnb Moves Repris    = 	" + nbMovesRepris);
+		
 		
 	
 		Long fromLong = mPions & this.bestMove;

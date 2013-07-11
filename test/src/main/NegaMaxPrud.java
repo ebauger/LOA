@@ -5,6 +5,7 @@ package main;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Stack;
 
 /**
@@ -26,7 +27,9 @@ public class NegaMaxPrud extends Grid {
 	private final static int UNDEFINED_HEURISTIQUE = 0;
 	
 	private final static int PARTIE_NON_TERMINEE = Integer.MAX_VALUE; // ou min
-		
+	
+	
+
 	
 	public static void init()
 	{
@@ -117,15 +120,15 @@ public class NegaMaxPrud extends Grid {
 		int heuristique = UNDEFINED_HEURISTIQUE;
 		
 		
-//		int nbMove = generatePossibleMvt().size();
-//		
-//		this.inverse();
-//		
-//		int nbMoveAdv = generatePossibleMvt().size();
-//		
-//		this.inverse();
-//		
-//		heuristique = nbMove - nbMoveAdv;
+		int nbMove = generatePossibleMvt().size();
+		
+		this.inverse();
+		
+		int nbMoveAdv = generatePossibleMvt().size();
+		
+		this.inverse();
+		
+		heuristique = nbMove - nbMoveAdv;
 		
 		
 		

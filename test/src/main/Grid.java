@@ -2,8 +2,11 @@ package main;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Stack;
+
+import main.NegaMaxPrudTranspositionTable.BestPathState;
 
 public class Grid {// implements Runnable{
 
@@ -18,6 +21,7 @@ public class Grid {// implements Runnable{
 	private static final Map<Integer, Long> LOA_MASK_DR = new HashMap<Integer, Long>(64);
 	private static final Map<Integer, Long> LOA_MASK_DL = new HashMap<Integer, Long>(64);
 	
+	protected final static HashMap<String, ArrayList<Long>> moves =new HashMap<String, ArrayList<Long>>(10000);
 	
 	//Contien le nombre de bit correspondant ˆ la valuer (long) de la clŽ
 	private static final Map<Long, Integer> COMPTEUR = new HashMap<Long, Integer>(6000); //5628 mais c'est pas sžr
@@ -25,7 +29,7 @@ public class Grid {// implements Runnable{
 	protected Long mPions = 0L;
 	protected Long mPionsAdv = 0L;
 
-	
+	protected static int nbMovesRepris = 0;
 
 	
 
@@ -193,6 +197,19 @@ public class Grid {// implements Runnable{
 	 */
 	public ArrayList<Long> generatePossibleMvt() {
 		ArrayList<Long> possMvt = new ArrayList<Long>();
+		
+		String key = Long.toBinaryString(mPions) + Long.toBinaryString(mPionsAdv);
+		
+		ArrayList<Long> lstMove = moves.get(key);
+		
+		if(lstMove != null)
+		{
+			
+			possMvt = lstMove;
+			++nbMovesRepris;
+		}
+		else
+		{
 
 		// long start = System.nanoTime();
 
@@ -287,6 +304,13 @@ public class Grid {// implements Runnable{
 			}
 			
 		}
+		
+		
+		
+		
+		
+		
+		
 
 //		 long end = System.nanoTime();
 //		 float time = end - start;
@@ -295,6 +319,10 @@ public class Grid {// implements Runnable{
 //		 + " mls=" + time / 1000000 + " mcs=" + time / 1000 + " ns="
 //		 + time);
 		
+		moves.put(key, possMvt);
+		
+		
+		}
 		return possMvt;
 
 	}

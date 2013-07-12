@@ -176,7 +176,7 @@ public class NegaMaxPrudTranspositionTable extends NegaMaxPrud {
 				nmp.inverse();
 				
 				
-				int val = nmp.calcule(-beta, -alpha, depth-1);
+				int val = -nmp.calcule(-beta, -alpha, depth-1);
 
 				
 				if(val>meilleur)
@@ -192,19 +192,8 @@ public class NegaMaxPrudTranspositionTable extends NegaMaxPrud {
 						this.bestMove = move;
 						
 						if(alpha>=beta){
-							
-							tdt =tableDeTransposition.get(key);
-						
-							if(tdt == null)
-							{
-								BestPathState bps = new BestPathState(mPions,mPionsAdv, meilleur, this.bestMove,this.bestMoveAdv, depth);
-								tableDeTransposition.put(key,bps);
-							}else if(tdt.getDepth()<depth){
-								BestPathState bps = new BestPathState(mPions,mPionsAdv, meilleur, this.bestMove,this.bestMoveAdv, depth);
-								tableDeTransposition.put(key,bps);
-							}
-							
-							return meilleur;
+	
+							return beta;
 						}
 					}	
 				}
@@ -259,7 +248,7 @@ public class NegaMaxPrudTranspositionTable extends NegaMaxPrud {
 			g.MakeMvtAndUpdate(bestMove);
 			g.coupAdvAndUpdate(this.bestMoveAdv, false);
 
-			System.out.println("Coup précédent repris");
+			System.out.println("Coup prï¿½cï¿½dent repris");
 			
 			g.calcule(M_INFINITY,P_INFINITY,lvl);
 			
@@ -284,7 +273,7 @@ public class NegaMaxPrudTranspositionTable extends NegaMaxPrud {
 		System.out.println("Feuilles parcourues  = 	" + nbfeuilles);
 		System.out.println("Coup Aleatoire	     = 	" + nbcoupAleatoire);
 		System.out.println("\ntaille table de transposage     = 	" + NegaMaxPrudTranspositionTable.tableDeTransposition.size());
-		System.out.println("	reutilisées      = 	" + nbEntryTransReuse);
+		System.out.println("	reutilisï¿½es      = 	" + nbEntryTransReuse);
 		System.out.println("\nnb Moves Repris    = 	" + nbMovesRepris);
 		
 		

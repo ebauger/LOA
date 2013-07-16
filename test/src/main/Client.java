@@ -19,7 +19,8 @@ class Client extends Thread {
 		mMessages = mess;
 
 		try {
-			MyClient = new Socket("localhost", 8888);
+			//MyClient = new Socket("localhost", 8888);
+			MyClient = new Socket("10.196.113.188", 8888);
 			input = new BufferedInputStream(MyClient.getInputStream());
 			output = new BufferedOutputStream(MyClient.getOutputStream());
 		} catch (IOException e) {

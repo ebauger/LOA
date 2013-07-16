@@ -15,7 +15,7 @@ public class Messages {
 	}
 
 	public void playWith(String pions, int color) {
-		mGrid = new Grid(pions, Grid.TYPE_DECODE_SERVER, color);
+		mGrid =  new StratMass1(pions, Grid.TYPE_DECODE_SERVER, color);
 
 	}
 
@@ -60,7 +60,7 @@ public class Messages {
 		@Override
 		public void run() {
 			// mGrid.getBestMove(3);
-			msg.setCoup(mGrid.getBestMove(3));
+			msg.setCoup(mGrid.getBestMoveAsString(5));
 		}
 	}
 }

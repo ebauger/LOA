@@ -5,8 +5,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Stack;
 
-public class Grid {// implements Runnable{
-
+public abstract class Grid {// implements Runnable{
+	public static final int INT_MIN_VALUE = Integer.MIN_VALUE + 1;
 	private static Map<Integer, Long> MASK;
 	public static int TYPE_DECODE_SERVER = 0;
 	//private Stack<Stack<Long>> mStackMvts;
@@ -22,17 +22,14 @@ public class Grid {// implements Runnable{
 	//Contien le nombre de bit correspondant à la valuer (long) de la clé
 	private static final Map<Long, Integer> COMPTEUR = new HashMap<Long, Integer>(6000); //5628 mais c'est pas sûr
 
-	private long mPions = 0;
-	private long mPionsAdv = 0;
+	protected long mPions = 0;
+	protected long mPionsAdv = 0;
 
-	
-
-	
 
 	private static final Map<Long, Long> MASK_MOVEMENT = new HashMap<Long, Long>(
 			2016);
 
-	private Grid(Grid g, long mvt, boolean inverse) {
+	public Grid(Grid g, long mvt, boolean inverse) {
 		if(inverse){
 			this.mPions = g.mPionsAdv;
 			this.mPionsAdv = g.mPions;
@@ -46,8 +43,6 @@ public class Grid {// implements Runnable{
 
 		
 	}
-	
-	
 
 	public Grid(String str, int type, int myColor) {
 		
@@ -93,6 +88,12 @@ public class Grid {// implements Runnable{
 
 				++offset;
 			}
+			if(myColor == Messages.Black){
+				
+				long temp = mPions;
+				mPions = mPionsAdv;
+				mPionsAdv = temp;
+			}
 		}
 
 	}
@@ -109,6 +110,14 @@ public class Grid {// implements Runnable{
 
 	public boolean isConnected() {
 		return isConnected(mPions);
+	}
+	
+	public boolean advIsConnected(){
+		return isConnected(mPionsAdv);
+	}
+	
+	public boolean gameOver(){
+		return isConnected(mPions)||isConnected(mPionsAdv);
 	}
 
 	private boolean isConnected(long pions) {
@@ -138,26 +147,9 @@ public class Grid {// implements Runnable{
 		return pions == 0;
 	}
 
-	public static void printBits() {
 
-		/*printBits(LOA_MASK_DR.get(62));
-		printBits(LOA_MASK_DL.get(12));
-		printBits(1L<<3 | 1L<<11 | 1L<<51);
-		System.out.println(COMPTEUR.get(1L<<3 | 1L<<11 | 1L<<51));
-		System.out.println(COMPTEUR.get(1L<<3 | 1L<<10 | 1L<<24));
-		System.out.println(COMPTEUR.get(1L<<30 | 1L<<44 | 1L<<51));
-		System.out.println(COMPTEUR.get(1L<<13 | 1L<<27 | 1L<<34 | 1L<<48));
-		System.out.println(COMPTEUR.get(1L<<23 | 1L<<5));
-		System.out.println(COMPTEUR.get(1L<<55 | 1L<<37 | 1L<<28));
-		System.out.println(COMPTEUR.get(1L<<24 | 1L<<60 | 1L<<33 | 1L <<42));
-		System.out.println(COMPTEUR.get(1L<<63 | 1L<<18));*/
-		/*System.out.println(COMPTEUR.get(1L<<62 | 1L<<55));
-		System.out.println(COMPTEUR.get(1L<<38 | 1L<<45));
-		System.out.println(COMPTEUR.get(1L<<39 | 1L<<60));
-		System.out.println(COMPTEUR.get(1L<<47 | 1L<<61));*/
-
-	}
-
+	
+	
 	/**
 	 * 
 	 * @param pions
@@ -193,9 +185,7 @@ public class Grid {// implements Runnable{
 					if((MASK_MOVEMENT.get(movement)&mPionsAdv) == 0)
 						possMvt.add(movement);
 				}
-				/*if(((1L << i - actionLine) & LOA_MASK_LINES.get(i)) != 0){
-					possMvt.add(1L << i | 1L << i-actionLine);
-				}*/
+				
 				endI = i + 8*actionCol; //mvt en haut
 				if(endI < 64 && (1L << endI & mPions)==0 ){
 					movement = 1L << i | 1L << endI;
@@ -203,54 +193,42 @@ public class Grid {// implements Runnable{
 					if((MASK_MOVEMENT.get(movement)&mPionsAdv) == 0)
 						possMvt.add(movement);
 				}
-				/*if(((1L << i + 8*actionCol) & LOA_MASK_COLUMNS.get(i)) != 0){
-					possMvt.add(1L << i | 1L << i+ 8*actionCol);
-				}*/
+				
 				endI = i - 8*actionCol; //mvt en bas
 				if(endI>=0 && (1L << endI & mPions)==0 ){
 					movement = 1L << i | 1L << endI;
 					if((MASK_MOVEMENT.get(movement)&mPionsAdv) == 0)
 						possMvt.add(movement);
 				}
-				/*if(((1L << i - 8*actionCol) & LOA_MASK_COLUMNS.get(i)) != 0){
-					possMvt.add(1L << i | 1L << i-8*actionCol);
-				}*/
+				
 				endI = i + 7*actionDR; //mvt en haut droite
 				if(((1L << endI) & LOA_MASK_DR.get(i)) != 0 && (1L << endI & mPions)==0 ){
 					movement = 1L << i | 1L << endI;
 					if((MASK_MOVEMENT.get(movement)&mPionsAdv) == 0)
 						possMvt.add(movement);
 				}
-				/*if(((1L << i + 7*actionDR) & LOA_MASK_DR.get(i)) != 0){
-					possMvt.add(1L << i | 1L << i+7*actionDR);
-				}*/
+				
 				endI = i - 7*actionDR; //mvt en base gauche
 				if(((1L << endI) & LOA_MASK_DR.get(i)) != 0 && (1L << endI & mPions)==0 ){
 					movement = 1L << i | 1L << endI;
 					if((MASK_MOVEMENT.get(movement)&mPionsAdv) == 0)
 						possMvt.add(movement);
 				}
-				/*if(((1L << i - 7*actionDR) & LOA_MASK_DR.get(i)) != 0){
-					possMvt.add(1L << i | 1L << i-7*actionDR);
-				}*/
+				
 				endI = i + 9*actionDL; //mvt en haut gauche
 				if(((1L << endI) & LOA_MASK_DL.get(i)) != 0 && (1L << endI & mPions)==0 ){
 					movement = 1L << i | 1L << endI;
 					if((MASK_MOVEMENT.get(movement)&mPionsAdv) == 0)
 						possMvt.add(movement);
 				}
-				/*if(((1L << i + 9*actionDL) & LOA_MASK_DL.get(i)) != 0){
-					possMvt.add(1L << i | 1L << i+9*actionDL);
-				}*/
+				
 				endI = i - 9*actionDL; //mvt en bas droite
 				if(((1L << endI) & LOA_MASK_DL.get(i)) != 0 && (1L << endI & mPions)==0 ){
 					movement = 1L << i | 1L << endI;
 					if((MASK_MOVEMENT.get(movement)&mPionsAdv) == 0)
 						possMvt.add(movement);
 				}
-				/*if(((1L << i - 9*actionDL) & LOA_MASK_DL.get(i)) != 0){
-					possMvt.add(1L << i | 1L << i-9*actionDL);
-				}*/
+				
 				
 			}
 			
@@ -564,101 +542,15 @@ public class Grid {// implements Runnable{
 		mPions = mPionsAdv;
 		mPionsAdv = temp;
 	}
-
 	
 	
 	
-	public int getBestM( int lvl, int alpha, int beta){
-		
-//		 si P est une feuille alors
-		if(isConnected() && isConnected(mPionsAdv))
-			return -50;
-		if(isConnected())
-			return Integer.MAX_VALUE;
-		if(isConnected(mPionsAdv))
-			return Integer.MIN_VALUE;
-		if(lvl == 0){
-			return 0;
-		}
-		
-//	       retourner la valeur de P
-		
-		// sinon
-		else{
-			int best = Integer.MIN_VALUE;
-			ArrayList<Long> moves = generatePossibleMvt();
-			for(Long mvt: moves){
-				Grid advGrid = new Grid(this, mvt, true);
-				int val = advGrid.getBestM(lvl-1, -alpha, -beta);
-				if(val > best){
-					alpha = best;
-					if(alpha >= beta){
-						return best;
-					}
-				}
-			}
-			return best;
-			
-		}
-//	  
-//	       Meilleur = –INFINI
-//	       pour tout fils Pi de P faire
-//	           Val = -ALPHABETA(Pi,-B,-A)
-//	           si Val > Meilleur alors
-//	               Meilleur = Val
-//	               si Meilleur > A alors
-//	                      A = Meilleur
-//	                   si A ≥ B alors
-//	                       retourner Meilleur
-//	                   finsi
-//	               finsi
-//	           finsi 
-//	       finpour 
-//	       retourner Meilleur
-//	   finsi
-		
-		
-		
-		//return 1L;
-	}
-	public void calcule(int lvl) {
+	abstract protected int getBestMove(int lvl, int lvlsDone, int alpha, int beta);
+	abstract protected long getBestMove(int lvl);
 
-	
+	public String getBestMoveAsString(int lvl) {
 
-		
-
-	}
-
-	
-
-	//private static int nbcoupaleatoire = 0;
-
-	public String getBestMove(int lvl) {
-
-		/*this.bestMvt = 0L;
-		calcule(lvl);
-
-		if (this.bestMvt == 0L) {
-			ArrayList<Long> coups = generatePossibleMvt();
-			System.out.println(nbcoupaleatoire++);
-			this.bestMvt = coups.get((int) (Math.random() * coups.size()));
-
-		}*/
-		ArrayList<Long> moves = generatePossibleMvt();
-		int alpha = Integer.MIN_VALUE;
-		int beta = Integer.MAX_VALUE;
-		long bestMvt = 0L;
-		loop : for(long mvt: moves){
-			
-			Grid advGrid = new Grid(this, mvt, false);
-			int val = advGrid.getBestM(lvl-1, alpha, beta);
-			if(val > alpha){
-				alpha = val;
-				bestMvt = mvt;
-				System.out.println(val);
-			}
-		}
-		
+		long bestMvt = getBestMove(lvl);
 
 	
 		long fromLong = mPions & bestMvt;
@@ -680,8 +572,11 @@ public class Grid {// implements Runnable{
 		return "" + res[0] + res[1] + res[2] + res[3];
 	}
 
-
-
 	
 
+	
+	
+	
+	
+	
 }

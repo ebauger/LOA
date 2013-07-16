@@ -2,13 +2,11 @@ package main;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 
-import main.NegaMaxPrudTranspositionTable.BestPathState;
 
-public class Grid {// implements Runnable{
+public abstract class Grid {// implements Runnable{
 
 	private static Map<Integer, Long> MASK;
 	public static int TYPE_DECODE_SERVER = 0;
@@ -31,10 +29,26 @@ public class Grid {// implements Runnable{
 
 	protected static int nbMovesRepris = 0;
 
+	public final static int WHITE = 1;
+	public final static int BLACK = 2;
 	
+	public char myColor;
+	public char colorAdv;
 
+	
+	protected static int nbcoupAleatoire = 0;
+	protected static int nbfeuilles = 0;
+	
+	protected int nbFirstCoupAleatoire = 2;
+	private final static int MAX_HEURISTIQUE = Integer.MAX_VALUE;
+	private final static int MIN_HEURISTIQUE = Integer.MIN_VALUE + 2;
+	private final static int NO_HEURISTIQUE = Integer.MIN_VALUE + 1;	
+	private final static int INVALIDE_HEURISTIQUE = Integer.MIN_VALUE;
+	
+	
 	private static final Map<Long, Long> MASK_MOVEMENT = new HashMap<Long, Long>(
 			2016);
+	
 
 	/**
 	 * env 10 micro secondes
@@ -47,6 +61,8 @@ public class Grid {// implements Runnable{
 
 		this.mPions =new Long(g.mPions);
 		this.mPionsAdv =  new Long(g.mPionsAdv);
+		myColor = g.myColor;
+		colorAdv = g.colorAdv;
 
 		/*ArrayList<ReferencedByte> lignes = new ArrayList<ReferencedByte>(8);
 		ArrayList<ReferencedByte> columns = new ArrayList<ReferencedByte>(8);
@@ -66,16 +82,16 @@ public class Grid {// implements Runnable{
 		
 	}
 	
-	
-
 	public Grid(String str, int type, int myColor) {
 		//init();
 		int offset = 0;
-
+		
+		
+		
+		Long pionsWhite = 0L;
+		Long pionsBlack = 0L;
+		
 		if (type == TYPE_DECODE_SERVER) {
-
-			long pionsWhite = 0;
-			long pionsBlack = 0;
 
 			for (char c : str.toCharArray()) {
 				if (c == '4') {
@@ -90,30 +106,38 @@ public class Grid {// implements Runnable{
 				++offset;
 			}
 
-			if (myColor == Messages.White) {
-				mPions = pionsWhite;
-				mPionsAdv = pionsBlack;
-			} else {
-				mPions = pionsBlack;
-				mPionsAdv = pionsWhite;
-			}
 
 		} else {
 
 			for (char c : str.toCharArray()) {
 				if (c == '1') {
-					mPions |= (long) 1 << 63 - offset;
+					pionsWhite |= (long) 1 << 63 - offset;
 					
 
 				} else if (c == '2') {
-					mPionsAdv |= (long) 1 << 63 - offset;
+					pionsBlack |= (long) 1 << 63 - offset;
 					
 				}
 
 				++offset;
 			}
-		}
+			
 
+
+		}
+		
+		if (myColor == Grid.WHITE) {
+			mPions = pionsWhite;
+			mPionsAdv = pionsBlack;
+			this.myColor = 'W';
+			this.colorAdv = 'B';
+		} else if (myColor == Grid.BLACK){
+			mPions = pionsBlack;
+			mPionsAdv = pionsWhite;
+			this.myColor = 'B';
+			this.colorAdv = 'W';
+		}
+		
 	}
 
 	public static void printBits(Long arrayBits) {
@@ -169,26 +193,9 @@ public class Grid {// implements Runnable{
 		return pions == 0;
 	}
 
-	public static void printBits() {
 
-		/*printBits(LOA_MASK_DR.get(62));
-		printBits(LOA_MASK_DL.get(12));
-		printBits(1L<<3 | 1L<<11 | 1L<<51);
-		System.out.println(COMPTEUR.get(1L<<3 | 1L<<11 | 1L<<51));
-		System.out.println(COMPTEUR.get(1L<<3 | 1L<<10 | 1L<<24));
-		System.out.println(COMPTEUR.get(1L<<30 | 1L<<44 | 1L<<51));
-		System.out.println(COMPTEUR.get(1L<<13 | 1L<<27 | 1L<<34 | 1L<<48));
-		System.out.println(COMPTEUR.get(1L<<23 | 1L<<5));
-		System.out.println(COMPTEUR.get(1L<<55 | 1L<<37 | 1L<<28));
-		System.out.println(COMPTEUR.get(1L<<24 | 1L<<60 | 1L<<33 | 1L <<42));
-		System.out.println(COMPTEUR.get(1L<<63 | 1L<<18));*/
-		/*System.out.println(COMPTEUR.get(1L<<62 | 1L<<55));
-		System.out.println(COMPTEUR.get(1L<<38 | 1L<<45));
-		System.out.println(COMPTEUR.get(1L<<39 | 1L<<60));
-		System.out.println(COMPTEUR.get(1L<<47 | 1L<<61));*/
-
-	}
-
+	
+	
 	/**
 	 * env 5 micro-secondes
 	 * 
@@ -198,20 +205,27 @@ public class Grid {// implements Runnable{
 	public ArrayList<Long> generatePossibleMvt() {
 		ArrayList<Long> possMvt = new ArrayList<Long>();
 		
-		String key = Long.toBinaryString(mPions) + Long.toBinaryString(mPionsAdv);
 		
-		ArrayList<Long> lstMove = moves.get(key);
 		
-		if(lstMove != null)
-		{
-			
-			possMvt = lstMove;
-			++nbMovesRepris;
-		}
-		else
-		{
-
 		// long start = System.nanoTime();
+		
+//		String key = Long.toBinaryString(mPions) + Long.toBinaryString(mPionsAdv);
+//		
+//		ArrayList<Long> lstMove = moves.get(key);
+//		
+//		if(lstMove != null)
+//		{
+//			
+//			possMvt = lstMove;
+//			++nbMovesRepris;
+//
+////			 System.out.println("\nmouvement repris-------------------");
+//			
+//		}
+//		else
+//		{
+
+		
 
 		// parcour chaque bits (boucle de 64)
 		// + condition si 1L<<i et pions != 0
@@ -230,7 +244,7 @@ public class Grid {// implements Runnable{
 				if(((1L << endI) & LOA_MASK_LINES.get(i)) != 0 && (1L << endI & mPions)==0 ){
 					movement = 1L << i | 1L << endI;
 					
-					if(movement != precedentMove & (MASK_MOVEMENT.get(movement)&mPionsAdv) == 0)
+					if((MASK_MOVEMENT.get(movement)&mPionsAdv) == 0)
 					{
 						possMvt.add(movement);
 					}
@@ -239,7 +253,7 @@ public class Grid {// implements Runnable{
 				endI = i - actionLine; //mvt ˆ droite
 				if(((1L << endI) & LOA_MASK_LINES.get(i)) != 0 && (1L << endI & mPions)==0 ){
 					movement = 1L << i | 1L << endI;
-					if(movement != precedentMove & (MASK_MOVEMENT.get(movement)&mPionsAdv) == 0)
+					if((MASK_MOVEMENT.get(movement)&mPionsAdv) == 0)
 						possMvt.add(movement);
 				}
 				/*if(((1L << i - actionLine) & LOA_MASK_LINES.get(i)) != 0){
@@ -249,7 +263,7 @@ public class Grid {// implements Runnable{
 				if(endI < 64 && (1L << endI & mPions)==0 ){
 					movement = 1L << i | 1L << endI;
 					
-					if(movement != precedentMove & (MASK_MOVEMENT.get(movement)&mPionsAdv) == 0)
+					if((MASK_MOVEMENT.get(movement)&mPionsAdv) == 0)
 						possMvt.add(movement);
 				}
 				/*if(((1L << i + 8*actionCol) & LOA_MASK_COLUMNS.get(i)) != 0){
@@ -258,7 +272,7 @@ public class Grid {// implements Runnable{
 				endI = i - 8*actionCol; //mvt en bas
 				if(endI>=0 && (1L << endI & mPions)==0 ){
 					movement = 1L << i | 1L << endI;
-					if(movement != precedentMove & (MASK_MOVEMENT.get(movement)&mPionsAdv) == 0)
+					if((MASK_MOVEMENT.get(movement)&mPionsAdv) == 0)
 						possMvt.add(movement);
 				}
 				/*if(((1L << i - 8*actionCol) & LOA_MASK_COLUMNS.get(i)) != 0){
@@ -267,7 +281,7 @@ public class Grid {// implements Runnable{
 				endI = i + 7*actionDR; //mvt en haut droite
 				if(((1L << endI) & LOA_MASK_DR.get(i)) != 0 && (1L << endI & mPions)==0 ){
 					movement = 1L << i | 1L << endI;
-					if(movement != precedentMove & (MASK_MOVEMENT.get(movement)&mPionsAdv) == 0)
+					if((MASK_MOVEMENT.get(movement)&mPionsAdv) == 0)
 						possMvt.add(movement);
 				}
 				/*if(((1L << i + 7*actionDR) & LOA_MASK_DR.get(i)) != 0){
@@ -276,7 +290,7 @@ public class Grid {// implements Runnable{
 				endI = i - 7*actionDR; //mvt en base gauche
 				if(((1L << endI) & LOA_MASK_DR.get(i)) != 0 && (1L << endI & mPions)==0 ){
 					movement = 1L << i | 1L << endI;
-					if(movement != precedentMove & (MASK_MOVEMENT.get(movement)&mPionsAdv) == 0)
+					if((MASK_MOVEMENT.get(movement)&mPionsAdv) == 0)
 						possMvt.add(movement);
 				}
 				/*if(((1L << i - 7*actionDR) & LOA_MASK_DR.get(i)) != 0){
@@ -294,7 +308,7 @@ public class Grid {// implements Runnable{
 				endI = i - 9*actionDL; //mvt en bas droite
 				if(((1L << endI) & LOA_MASK_DL.get(i)) != 0 && (1L << endI & mPions)==0 ){
 					movement = 1L << i | 1L << endI;
-					if(movement != precedentMove & (MASK_MOVEMENT.get(movement)&mPionsAdv) == 0)
+					if((MASK_MOVEMENT.get(movement)&mPionsAdv) == 0)
 						possMvt.add(movement);
 				}
 				/*if(((1L << i - 9*actionDL) & LOA_MASK_DL.get(i)) != 0){
@@ -304,25 +318,18 @@ public class Grid {// implements Runnable{
 			}
 			
 		}
-		
-		
-		
-		
-		
-		
-		
 
+//		moves.put(key, possMvt);
+//		
+//		
+//		}
+		
 //		 long end = System.nanoTime();
 //		 float time = end - start;
 //		
-//		 System.out.println("generate mvt : time s= " + time / 1000000000
-//		 + " mls=" + time / 1000000 + " mcs=" + time / 1000 + " ns="
-//		 + time);
-		
-		moves.put(key, possMvt);
+//		 System.out.println("generate mvt : time " + time / 1000000 + "micro");
 		
 		
-		}
 		return possMvt;
 
 	}
@@ -332,38 +339,7 @@ public class Grid {// implements Runnable{
 	}
 
 	public static void init() {
-
-		bestMovesGrid = new Stack<Long>();
-		
-		alphabetas = new Stack<Integer>();
-		
-		alphabetas.push(NO_HEURISTIQUE);
-		
-		
-		
-		//mStackMvts = new Stack<Stack<Long>>();
-		//mStackGame = new Stack<Grid>();
-		//ArrayList<ReferencedByte> lignes = new ArrayList<ReferencedByte>(8);
-		//ArrayList<ReferencedByte> columns = new ArrayList<ReferencedByte>(8);
-		//ArrayList<ReferencedByte> diagR = new ArrayList<ReferencedByte>(15);
-		//ArrayList<ReferencedByte> diagL = new ArrayList<ReferencedByte>(15);
-		/*for (int i = 0; i < 8; ++i) {
-			lignes.add(new ReferencedByte());
-			columns.add(new ReferencedByte());
-		}
-
-		for (int i = 0; i < 15; ++i) {
-			diagR.add(new ReferencedByte());
-			diagL.add(new ReferencedByte());
-		}
-
-		for (int i = 0; i < 64; ++i) {
-			LOA_LIGNES.put(i, lignes.get(i / 8));
-			LOA_COLUMNS.put(i, columns.get(i % 8));
-			LOA_DIAGONAL_RIGHT.put(i, diagR.get((i / 8) + (i % 8)));
-			LOA_DIAGONAL_LEFT.put(i, diagL.get((i / 8) + (7 - (i % 8))));
-		}*/
-		
+	
 		
 		
 		//DŽbut gŽnŽration de LOA MASKS
@@ -620,17 +596,21 @@ public class Grid {// implements Runnable{
 		String res = "";
 		int idx = 8;
 		System.out.println("---------------------");
-		res += "o = Mes Pions\nx = Pions Adversaire \n";
+		res += "\n";
+		res += 	myColor + " = Mes Pions		" + Long.toBinaryString(mPions|(1L<<63))+
+				"\n"+
+				colorAdv + " = Pions Adversaire 	" + Long.toBinaryString(mPionsAdv|(1L<<63)) +"\n";
 		res += idx+">";
-		long totalPions = mPions | mPionsAdv;
 		for (int i = 63; i >= 0; --i) {
-			if ((totalPions & (1l << i)) == 0) {
+			
+			if ((mPions & (1l << i)) != 0) {
+				res +="["+ myColor +"]";
+			} else if( (mPionsAdv & (1l << i)) != 0)
+				res +="["+ colorAdv +"]";
+			else{
 				res+="[ ]";
-			} else if ((mPions & (1l << i)) == 0) {
-				res +="[x]";
-			} else {
-				res += "[o]";
-			}
+			} 
+
 			if (i % 8 == 0) {
 				res += "\n";
 				if(idx > 1)
@@ -638,10 +618,13 @@ public class Grid {// implements Runnable{
 			}
 		}
 		res +="   A  B  C  D  E  F  G  H\n";
+//		res+= "heuristique=" + this.heuristique;
 		System.out.println(res);
 		return res;
 	}
 
+//	protected int heuristique;
+	
 	/**
 	 * 
 	 * @param move
@@ -663,326 +646,35 @@ public class Grid {// implements Runnable{
 		MakeMvtAndUpdate(move);
 		inverse();
 		
-		if(checkMove & !bestMovesGrid.isEmpty())
-		{
-			if(move != bestMovesGrid.peek())
-			{
-				bestMovesGrid.clear();
-				
-				alphabetas.clear();
-				alphabetas.push(NO_HEURISTIQUE);
-			}
-		}
 	}
 
 	protected void inverse() {
 		Long temp = mPions;
 		mPions = new Long(mPionsAdv);
 		mPionsAdv = new Long(temp);
+		
+		char colorTmp = myColor;
+		myColor = colorAdv;
+		colorAdv = colorTmp;
 	}
-
-	/*public void updateLOAs(int from, int to, boolean eat) {
-		// System.out.println("from="+(63-Long.numberOfLeadingZeros(from)));
-		// System.out.println("from="+from+" to="+to);
-		--LOA_LIGNES.get(from).value;
-		--LOA_COLUMNS.get(from).value;
-		--LOA_DIAGONAL_RIGHT.get(from).value;
-		--LOA_DIAGONAL_LEFT.get(from).value;
-
-		if (!eat) {
-			++LOA_LIGNES.get(to).value;
-			++LOA_COLUMNS.get(to).value;
-			++LOA_DIAGONAL_RIGHT.get(to).value;
-			++LOA_DIAGONAL_LEFT.get(to).value;
-		}
-	}
-
-	/*private class ReferencedByte {
-		private byte value = 0;
-
-		@Override
-		public String toString() {
-			return value + "";
-		}
-
-	}*/
-
-	private static Stack<Integer> alphabetas;
-	private static Stack<Long> bestMovesGrid;
-
-	protected long precedentMove = 0L;
-	
-	public void calcule(int lvl) {
-
 		//int ab;
-		
-		int beta = INVALIDE_HEURISTIQUE;
-
-		if (!alphabetas.isEmpty()) {
-			beta = alphabetas.pop();
-
-			beta = negateHeuristique(beta);
-
-		}
-//		if(beta == INVALIDE_HEURISTIQUE)
-//			System.out.println("INVALIDE_HEURISTIQUE");
-
-		int alpha = calculHeuristique(MAX_MIN);
-
-		if (alpha == MAX_HEURISTIQUE) {
-			if (alpha > beta)
-			{
-//				System.out.println("bestMove Clear :");
-//				System.out.println("alpha == MAX_HEURISTIQUE");
-//				System.out.println("&");
-//				System.out.println("alpha < beta");
-//				ab = alpha;
-//				System.out.println("	alpha= " +(ab==MAX_HEURISTIQUE?"MAX_HEURISTIQUE":(ab == MIN_HEURISTIQUE?"MIN_HEURISTIQUE":(ab == NO_HEURISTIQUE?"NO_HEURISTIQUE": ab))));
-//				ab = beta;
-//				System.out.println("	beta = " + (ab==MAX_HEURISTIQUE?"MAX_HEURISTIQUE":(ab == MIN_HEURISTIQUE?"MIN_HEURISTIQUE":(ab == NO_HEURISTIQUE?"NO_HEURISTIQUE": ab))));
-//				System.out.println();
-//				
-				
-				bestMovesGrid.clear();
-			}
-			
-			beta = alpha;
-
-			alphabetas.push(beta);
-
-			return;
-		}
-
-		if (lvl <= 0) {
-			
-			alpha = calculHeuristique(ALL);
-			
-			if (beta == NO_HEURISTIQUE | alpha < beta) {
-//				System.out.println("bestMove Clear :");
-//				System.out.println("lvl <= 0");
-//				System.out.println("&");
-//				System.out.println("(");
-//				System.out.println("	beta == NO_HEURISTIQUE");
-//				System.out.println("	|");
-//				System.out.println("	alpha < beta");
-//				System.out.println(")");
-//				ab = alpha;
-//				System.out.println("	alpha= " +(ab==MAX_HEURISTIQUE?"MAX_HEURISTIQUE":(ab == MIN_HEURISTIQUE?"MIN_HEURISTIQUE":(ab == NO_HEURISTIQUE?"NO_HEURISTIQUE": ab))));
-//				ab = beta;
-//				System.out.println("	beta = " + (ab==MAX_HEURISTIQUE?"MAX_HEURISTIQUE":(ab == MIN_HEURISTIQUE?"MIN_HEURISTIQUE":(ab == NO_HEURISTIQUE?"NO_HEURISTIQUE": ab))));
-//				System.out.println();
-				
-				
-				bestMovesGrid.clear();
-				
-				
-				beta = alpha;
-			}
-			
-			nbfeuilles++;
-
-		} else {
-
-			alpha = beta;
-
-			ArrayList<Long> coups = generatePossibleMvt();
-
-			for (long move : coups) {
-
-				Stack<Long> BestMoveTmp = new Stack<Long>();
-				for (Long bMove : bestMovesGrid) {
-					BestMoveTmp.push(new Long(bMove));
-				}
-				
-				Grid grid = new Grid(this);
-				grid.MakeMvtAndUpdate(move);
-
-				if (alpha != MAX_HEURISTIQUE & alpha != MIN_HEURISTIQUE) {
-					alphabetas.push(alpha);
-				
-
-					grid.calcule(lvl - 1);
-
-				
-					int alphaTmp = negateHeuristique(alphabetas.pop());
-	
-	//				if(lvl == 4){
-	//					ab = alpha;
-	//					System.out.println("alpha= " +(ab==MAX_HEURISTIQUE?"MAX_HEURISTIQUE":(ab == MIN_HEURISTIQUE?"MIN_HEURISTIQUE":(ab == NO_HEURISTIQUE?"NO_HEURISTIQUE": ab))));
-	//					ab = alphaTmp;
-	//					System.out.println("alpha= " +(ab==MAX_HEURISTIQUE?"MAX_HEURISTIQUE":(ab == MIN_HEURISTIQUE?"MIN_HEURISTIQUE":(ab == NO_HEURISTIQUE?"NO_HEURISTIQUE": ab))));
-	//				}
-					
-					if (alpha != alphaTmp & move != precedentMove) {
-						alpha = alphaTmp;
-						
-						
-						bestMovesGrid.push(move);
-						
-						
-						if (alpha == MAX_HEURISTIQUE) {
-	
-							bestMovesGrid.push(move);
-	
-							beta = alpha;
-							
-							break;
-						} else if (beta != NO_HEURISTIQUE & alpha >= beta) {
-							bestMovesGrid = BestMoveTmp;
-							break;
-						}
-						
-						beta = alpha;
-					}
-				}
-			}
-
-		}
-
-
-		alphabetas.push(beta);
-		
-//		if(lvl <= 1)
-//		{
-//			ab = alpha;
-//			System.out.println(lvl +"--> alpha= " +(ab==MAX_HEURISTIQUE?"MAX_HEURISTIQUE":(ab == MIN_HEURISTIQUE?"MIN_HEURISTIQUE":(ab == NO_HEURISTIQUE?"NO_HEURISTIQUE": ab))));
-//			ab = beta;
-//			System.out.println("     beta = " + (ab==MAX_HEURISTIQUE?"MAX_HEURISTIQUE":(ab == MIN_HEURISTIQUE?"MIN_HEURISTIQUE":(ab == NO_HEURISTIQUE?"NO_HEURISTIQUE": ab))));
-//		}
-		
-	}
-	
-	private final static int MAX_HEURISTIQUE = Integer.MAX_VALUE;
-	private final static int MIN_HEURISTIQUE = Integer.MIN_VALUE + 2;
-	private final static int NO_HEURISTIQUE = Integer.MIN_VALUE + 1;	
-	private final static int INVALIDE_HEURISTIQUE = Integer.MIN_VALUE;
-	
-	private final int ALL = 0;
-	private final int MAX_MIN = 1;
-	
-	private int calculHeuristique(int typeHeuristique) {
-		int heuristique = 0;
-
-		if(typeHeuristique == ALL)
-		{
-			if (this.isConnected(mPions) & this.isConnected(mPionsAdv)) {
-				heuristique = 0;
-			}
-			else
-			{
-				
-				
-				
-			}
-		}
-		
-		
-		
-		if(typeHeuristique == MAX_MIN || typeHeuristique == ALL)
-		{
-			if (this.isConnected(mPions)) { // valable aussi pour match nul!!!
-				//printGame();
-				heuristique = MAX_HEURISTIQUE;
-			} else if (this.isConnected(mPionsAdv)) {
-				//printGame();
-				heuristique = MIN_HEURISTIQUE;
-			}
-		}
-		return heuristique;
-	}
-
-	private int negateHeuristique(int heuristique) {
-		if (heuristique == MAX_HEURISTIQUE) {
-			return MIN_HEURISTIQUE;
-		}
-
-		if (heuristique == MIN_HEURISTIQUE)
-			return MAX_HEURISTIQUE;
-
-		if (heuristique == NO_HEURISTIQUE)
-			return NO_HEURISTIQUE;
-
-		return -heuristique;
-	}
-
-	private long countBits(long bitArray) {
-		bitArray = bitArray - ((bitArray >> 1) & 5555555555555555L);
-		bitArray = (bitArray & 0x33333333) + ((bitArray >> 2) & 0x33333333);
-		return (((bitArray + (bitArray >> 4)) & 0x0F0F0F0F) * 0x01010101) >> 24;
-	}
-	
-	protected static int nbcoupAleatoire = 0;
-	protected static int nbfeuilles = 0;
-	
-	protected int nbFirstCoupAleatoire = 2;
-
-	public String getBestMove(int lvl) {
-		
-		System.out.println("MAX Profondeur = "+ lvl);
-		
-		ArrayList<Long> coups;
-		Long bestMvt;
-		
-		if(nbFirstCoupAleatoire >0){
-			
-			nbFirstCoupAleatoire--;
-			
-		}else if(!bestMovesGrid.isEmpty()){
-			
-			Grid g = new Grid(this);
-
-			
-			int i = 0; // 0 = coup adversaire - 1 = mon coup
-			for (long move : bestMovesGrid) {
-				if(i == 0)
-				{
-					g.coupAdvAndUpdate(move,false);
-					
-					i = 1;
-				}
-				else
-				{
-					g.MakeMvtAndUpdate(move);
-					
-					i = 0;
-				}
-			}
-			System.out.println("Coups précédents repris");
-			g.calcule(lvl);
-			
-		}
-		else{
-			
-			nbfeuilles = 0;
-			
-			calcule(lvl);
-		}
-		
-		
-	
-		
-		
-		
-		if (bestMovesGrid.isEmpty()) {
-			coups = generatePossibleMvt();
-			bestMvt = coups.get((int) (Math.random() * coups.size()));
-			++nbcoupAleatoire;
-		} else {
-			 bestMvt = bestMovesGrid.pop();
-		}
-		
-		precedentMove = bestMvt;
-		
-		System.out.println("Feuilles parcourues  = 	" + nbfeuilles);
-		System.out.println("Coup Aleatoire	     = 	" + nbcoupAleatoire);
-
 
 	
-		Long fromLong = mPions & bestMvt;
-		Long toLong = bestMvt ^ fromLong;
+	
+	
+	abstract protected long getBestMove(int lvl);
+
+	public String getBestMoveAsString(int lvl) {
+
+		long bestMvt = getBestMove(lvl);
+
+	
+		long fromLong = mPions & bestMvt;
+		long toLong = bestMvt ^ fromLong;
 		int from = 63 - Long.numberOfLeadingZeros(fromLong);
 		int to = 63 - Long.numberOfLeadingZeros(toLong);
 		
+		MakeMvtAndUpdate(bestMvt);
 		
 		char[] res = new char[4];
 		res[0] = (char) ('A' + (7 - (from % 8)));
@@ -990,74 +682,9 @@ public class Grid {// implements Runnable{
 		res[2] = (char) ('A' + (7 - (to % 8)));
 		res[3] = (char) ('1' + (to / 8));
 
-		// System.out.println("" + res[0] + res[1] + res[2] + res[3]);
-		// System.out.println("-------------");
-		// String fromletter = String.valueOf(((char) ('H' - (from%8))) +
-		// ((char)'1' + (from/8)));
-		// String toletter = String.valueOf(((char) ('H' - (to%8))) + ((char)'1'
-		// + (to/8)));
-		
-   		String coup = "" + res[0] + res[1] + res[2] + res[3];
-		
-//		System.out.println("coup=" + coup +" from=" + from +" to="+ to + "\n" +
-//				" move=     " + Long.toBinaryString(bestMvt | 1L << 63)+ "\n" +
-//				" mPions=   " +Long.toBinaryString(mPions | 1L << 63) + "\n" +
-//				" fromLong= " + Long.toBinaryString(fromLong | 1L << 63) + "\n" +
-//				" toLong=   " + Long.toBinaryString(toLong | 1L << 63) );
-//		
-		
-		
-//		coups = generatePossibleMvt();
-//		
-//		System.out.println("mvtpossible (" + coups.size() +")");
-//		
-//		for (Long move : coups) {
-//						
-//			Long fromLongTmp = mPions & move;
-//			Long toLongTmp = move ^ fromLongTmp;
-//			int fromTmp = 63 - Long.numberOfLeadingZeros(fromLongTmp);
-//			int toTmp = 63 - Long.numberOfLeadingZeros(toLongTmp);
-//			
-//			char[] resTmp = new char[4];
-//			resTmp[0] = (char) ('A' + (7 - (fromTmp % 8)));
-//			resTmp[1] = (char) ('1' + (fromTmp / 8));
-//			resTmp[2] = (char) ('A' + (7 - (toTmp % 8)));
-//			resTmp[3] = (char) ('1' + (toTmp / 8));
-//			
-//			
-//			System.out.println("-->	coup= " + resTmp[0] + resTmp[1] + resTmp[2] + resTmp[3]);
-//			System.out.println("	from= " + fromTmp);
-//			System.out.println("	to  = " + toTmp);
-//			System.out.println();
-//		}
-//		
-//		
-//		Long totalPions = mPions|mPionsAdv;
-//		
-//		
-//		int actionLine = COMPTEUR.get(totalPions & LOA_MASK_LINES.get(from));
-//		int actionCol = COMPTEUR.get(totalPions & LOA_MASK_COLUMNS.get(from));
-//		int actionDR = COMPTEUR.get(totalPions & LOA_MASK_DR.get(from));
-//		int actionDL = COMPTEUR.get(totalPions & LOA_MASK_DL.get(from));
-//		
-//		
-//		
-//		System.out.println(
-//						" actionLine= " + actionLine +"\n"+
-//						" actionCol=  " + actionCol +"\n"+
-//						" actionDR=   " + actionDR +"\n"+
-//						" actionDL=   " + actionDL
-//				
-//				);
-//		
-		
-		MakeMvtAndUpdate(bestMvt);
-		
-		return coup;
-	}
+		System.out.println("" + res[0] + res[1] + res[2] + res[3]);
+	
 
-	@Override
-	public String toString() {
-		return this.printGame();
+		return "" + res[0] + res[1] + res[2] + res[3];
 	}
 }

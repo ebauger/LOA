@@ -45,7 +45,6 @@ class Client extends Thread {
 
 				// Début de la partie en joueur blanc
 				if (cmd == '1') {
-					
 					byte[] aBuffer = new byte[1024];
 
 					int size = input.available();
@@ -57,7 +56,7 @@ class Client extends Thread {
 					System.out.println("Nouvelle partie! Vous jouer blanc, \nEntrez votre coup : ");
 					
 					System.out.println("plateau envoyé : " + s);
-					mMessages.playWith(boardValues, Messages.White);
+					mMessages.playWith(boardValues, Grid.WHITE);
 
 					
 
@@ -80,7 +79,7 @@ class Client extends Thread {
 					System.out.println("plateau envoyé : " + s);
 					String boardValues = s.replace(" ", "");
 
-					mMessages.playWith(boardValues, Messages.Black);
+					mMessages.playWith(boardValues, Grid.BLACK);
 
 					// String[] boardValues;
 					// boardValues = s.split(" ");

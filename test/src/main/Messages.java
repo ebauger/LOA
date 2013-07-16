@@ -2,13 +2,17 @@ package main;
 
 public class Messages {
 
-	public final static int White = 4;
-	public final static int Black = 2;
 
-	//private NegaMaxPrud mGrid;
-	private NegaMaxPrudTranspositionTable mGridTT;
+	private MTDFNegaMaxPrudTranspositionTableProgressivelvl mGrid;
+	//private NegaMaxPrudTranspositionTable mGridTT;
+	
+	//private MTDFNegaMaxPrudTranspositionTable mGridMTDF;
+	
+	
 	private Client mClient;
-
+	
+	
+	
 	public Messages() {
 		mClient = new Client(this);
 
@@ -16,10 +20,14 @@ public class Messages {
 	}
 
 	public void playWith(String pions, int color) {
-		//mGrid = new NegaMaxPrud(pions, Grid.TYPE_DECODE_SERVER, color);
-		mGridTT = new NegaMaxPrudTranspositionTable(pions, Grid.TYPE_DECODE_SERVER, color);
+		mGrid = new MTDFNegaMaxPrudTranspositionTableProgressivelvl(pions, Grid.TYPE_DECODE_SERVER, color);
+		//mGridTT = new NegaMaxPrudTranspositionTable(pions, Grid.TYPE_DECODE_SERVER, color);
+		//mGrid = new MTDFNegaMaxPrudTranspositionTable(pions, Grid.TYPE_DECODE_SERVER, color);
 		
-		mGridTT.printGame();
+		
+		//mGridTT.printGame();
+		mGrid.printGame();
+		
 	}
 
 //	long start;
@@ -27,6 +35,7 @@ public class Messages {
 	public void getCoup() {
 
 		Thread r = new Rototo(this);
+		r.setPriority(10);
 		r.start();
 
 //		start = System.nanoTime();
@@ -53,8 +62,9 @@ public class Messages {
 
 		// mGrid.printBits(move);
 
-		mGridTT.coupAdvAndUpdate(move,true);
+		//mGridTT.coupAdvAndUpdate(move,true);
 
+		mGrid.coupAdvAndUpdate(move,true);
 	}
 
 	/*
@@ -71,7 +81,7 @@ public class Messages {
 		@Override
 		public void run() {
 			// mGrid.getBestMove(3);
-			msg.setCoup(mGridTT.getBestMove(5));
+			msg.setCoup(mGrid.getBestMoveAsString(Main.MAX_LVL));
 			System.gc();
 		}
 	}

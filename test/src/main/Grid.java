@@ -545,7 +545,7 @@ public abstract class Grid {// implements Runnable{
 	
 	
 	
-	abstract protected int getBestMove(int lvl, int lvlsDone, int alpha, int beta);
+	//abstract protected int getBestMove(int lvl, int lvlsDone, int alpha, int beta);
 	abstract protected long getBestMove(int lvl);
 
 	public String getBestMoveAsString(int lvl) {

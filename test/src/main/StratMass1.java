@@ -19,6 +19,7 @@ public class StratMass1 extends Grid{
 		ArrayList<Long> moves = generatePossibleMvt(); //Moves de MAX
 		
 		
+		
 		int best = INT_MIN_VALUE;
 		long bestMvt = moves.get(0);
 		int alpha = INT_MIN_VALUE;
@@ -83,6 +84,7 @@ public class StratMass1 extends Grid{
 		
 	}
 
+	
 	
 	private int getBestMove( int lvl, int lvlsDone, int alpha, int beta){
 

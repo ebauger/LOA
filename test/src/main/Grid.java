@@ -485,11 +485,11 @@ public abstract class Grid {// implements Runnable{
 		MASK = new HashMap<Integer, Long>();
 		for (int i = 0; i < 64; ++i) {
 			if (i % 8 == 0) { // bord de droite
-				MASK.put(i, 1L << i + 1 | 3L << i + 7
+				MASK.put(i, 1L << i + 1 |  ((i + 8 < 64) ? 3L << i + 8 : 0)
 						| ((i - 8 >= 0) ? 3L << i - 8 : 0));
 			} else if ((i + 1) % 8 == 0) {// bord de gauche
 				MASK.put(i, (i + 7 < 64 ? 3L << i + 7 : 0) | 1L << i - 1
-						| 3L << i - 9);
+						|  ((i - 8 >= 0) ? 3L << i - 9 : 0));
 			} else {// general
 				MASK.put(i, 1L << i + 1 | (i + 7 < 64 ? 7L << i + 7 : 0L)
 						| 1L << i - 1 | (i - 9 >= 0 ? 7L << i - 9 : 0));
@@ -543,7 +543,13 @@ public abstract class Grid {// implements Runnable{
 		mPionsAdv = temp;
 	}
 	
-	
+	public static void print(){
+		printBits(MASK.get(48));
+		printBits(MASK.get(56));
+		printBits(MASK.get(23));
+		printBits(MASK.get(7));
+		System.out.println("1000000210000002100000021000000210000002100000021000000210000002");
+	}
 	
 	//abstract protected int getBestMove(int lvl, int lvlsDone, int alpha, int beta);
 	abstract protected long getBestMove(int lvl);

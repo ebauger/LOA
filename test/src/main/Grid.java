@@ -3,7 +3,6 @@ package main;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Stack;
 
 public abstract class Grid {// implements Runnable{
 	public static final int INT_MIN_VALUE = Integer.MIN_VALUE + 1;
@@ -100,11 +99,11 @@ public abstract class Grid {// implements Runnable{
 
 	public static void printBits(Long arrayBits) {
 		int i = Long.numberOfLeadingZeros(arrayBits);
-
+		String str = "";
 		while (i-- > 0) {
-			System.out.print("0");
+			str+="0";
 		}
-		System.out.println(Long.toBinaryString(arrayBits));
+		System.out.println(str+Long.toBinaryString(arrayBits));
 
 	}
 

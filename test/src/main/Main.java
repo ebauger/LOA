@@ -11,6 +11,7 @@ public class Main {
 	private static Messages mMessages;
 
 	public final static int MAX_LVL = 4;
+	public final static int MAX_MVT_SAVE_LVL = 3;
 	
 	/**
 	 * @param args
@@ -40,14 +41,17 @@ public class Main {
 				 "10000001" +
 				 "02222220";
 		 
-		 Grid.init();
+//		 Grid.init();
+		 GridSaveMvt.init();
 		//Grid.printBits();		 
 		 
-		 Grid g = new NegaMaxPrud(gridDebutPartieStandard, 1, Grid.WHITE);
-		 g.printGame();
+//		 Grid g = new MTDFNegaMaxPrudTranspositionTableProgressivelvl(gridDebutPartieStandard, 1, Grid.WHITE);
+//		 g.printGame();
 		 
 //		 System.out.println("Max int=" + Integer.MAX_VALUE);
 //		 System.out.println("Min int=" + Integer.MIN_VALUE);
+		 
+		 System.out.println("Profondeur Max = "+MAX_LVL);
 		 
 		 System.out.println("Ready to play ?");
 		 System.in.read();

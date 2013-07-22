@@ -5,7 +5,6 @@ package main;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Stack;
 
 /**
  * @author Charly
@@ -13,55 +12,20 @@ import java.util.Stack;
  */
 public class NegaMaxPrudTranspositionTable extends NegaMaxPrud {
 
-	
-	private final static int P_INFINITY = Integer.MAX_VALUE-1;
-	private final static int M_INFINITY = Integer.MIN_VALUE+1;
-	private final static int PARTIE_GAGNE = Integer.MAX_VALUE-2;
-	private final static int PARTIE_PERDU = Integer.MIN_VALUE+2;
-	private final static int MATCH_NULL = 0;
-	
-	private final static int MAX_HEURISTIQUE = Integer.MAX_VALUE+2;
-	private final static int MIN_HEURISTIQUE = Integer.MIN_VALUE-2;
-	private final static int UNDEFINED_HEURISTIQUE = 0;
-	
-	private final static int PARTIE_NON_TERMINEE = Integer.MAX_VALUE; // ou min
-	
-	private int lvlMax_heuristique = 0;
-	private int lvlMin_heuristique = 0;
-	
-	protected final static HashMap<String,BestPathState> tableDeTransposition = new HashMap<String, NegaMaxPrudTranspositionTable.BestPathState>(5000);
-	
-		protected class BestPathState{
 		
-		private int meilleurNegaMax;
-		private long bestMove;
-		private long bestMoveAdv;
-		private int depth;
-		private long mPions;
-		private long pionsAdv;
+	protected final static HashMap<Integer, HashMap<Long, NegaMaxPrudTranspositionTable.BestPathState>> tableDeTransposition = new HashMap<Integer, HashMap<Long, NegaMaxPrudTranspositionTable.BestPathState>>(5000);
+	
+	protected class BestPathState{
 		
-		public int getMeilleurNegaMax() {
-			return meilleurNegaMax;
-		}
-
-		public long getBestMove() {
-			return bestMove;
-		}
+		protected int meilleurNegaMax;
+		protected int depth;
+		protected long mPions;
+		protected long pionsAdv;
 		
-		public long getBestMoveAdv() {
-			return bestMoveAdv;
-		}
-
-		public int getDepth() {
-			return depth;
-		}
-		
-		public BestPathState(long mPions,long pionsAdv ,int meilleurNegaMax, long bestMove,long bestMoveAdv, int depth ) {
+		public BestPathState(long mPions,long pionsAdv ,int meilleurNegaMax, int depth ) {
 			this.mPions = mPions;
 			this.pionsAdv = pionsAdv;
 			this.meilleurNegaMax = meilleurNegaMax;
-			this.bestMove = bestMove;
-			this.bestMoveAdv = bestMoveAdv;
 			this.depth = depth;
 			
 			
@@ -115,77 +79,56 @@ public class NegaMaxPrudTranspositionTable extends NegaMaxPrud {
 		
 	}
 	
-	
-	public static void init()
-	{
-		Grid.init();
-		
-		
-		
-	}
-	
-	private int nbFirstCoupAleatoire = 0;
-	
+	protected static int nbEntryTransReuse=0;
 
 	
 	public NegaMaxPrudTranspositionTable(NegaMaxPrudTranspositionTable nmp) {
 		super(nmp);
-		
-
 	}
 	
 	public NegaMaxPrudTranspositionTable(String str, int type, int myColor) {
 		super(str, type, myColor);
 		
 	}
-	
-
-	protected void inverse() {
-		Long temp = mPions;
-		mPions = new Long(mPionsAdv);
-		mPionsAdv = new Long(temp);
 		
-		int lvlMax_heuristiqueTmp = this.lvlMax_heuristique;
-		this.lvlMax_heuristique = lvlMin_heuristique;
-		this.lvlMin_heuristique = lvlMax_heuristiqueTmp;
-		
-	}
-	
 	protected int NegaMax(int alpha, int beta, int depth){
 		
-		String key = Long.toBinaryString(mPions) + Long.toBinaryString(mPionsAdv);
+		int firstKey = whitePions?nbMPions<<3+nbPionsAdv:nbPionsAdv<<3+nbMPions;
 		
-		BestPathState tdt = tableDeTransposition.get(key);
+		Long secondKey = mPions|mPionsAdv;
+		
+		HashMap<Long, BestPathState> tdt = tableDeTransposition.get(firstKey);
+		
+		BestPathState bps = null;
 		
 		if(tdt != null)
 		{
+			bps = tdt.get(secondKey);
 			
-			if(depth <= tdt.getDepth())
+			if(bps != null)
 			{
-				
-				nbEntryTransReuse++;
-				
-				this.bestMove = tdt.bestMove;
-				this.bestMoveAdv = tdt.bestMoveAdv;
-				
-				return tdt.getMeilleurNegaMax();
+				if(depth >= bps.depth)
+				{
+					nbEntryTransReuse++;	
+					int meilleurTdt = bps.meilleurNegaMax;
+					meilleurTdt *= whitePions?1:-1;
+					return meilleurTdt == PARTIE_PERDU? meilleurTdt + depth:meilleurTdt-depth;
+				}
 			}
 		}
+
 		
 		int partieTerm = checkPartieTerm();
-		if(partieTerm != PARTIE_NON_TERMINEE){
-			
-//			if(partieTerm == PARTIE_GAGNE)
-//				++this.lvlMax_heuristique ;
-//			else if(partieTerm == PARTIE_PERDU)
-//				++this.lvlMin_heuristique ;
-			
+		if(partieTerm == PARTIE_GAGNE){
 			++nbfeuilles;
-			return partieTerm;
-		}else if (depth == 0)//this.lvlMax_heuristique)
+			return PARTIE_GAGNE - depth;
+		}else if(partieTerm == PARTIE_PERDU){
+			++nbfeuilles;
+			return PARTIE_GAGNE + depth;
+		}else if (depth == MaxLvl)//this.lvlMax_heuristique)
 		{
 			++nbfeuilles;
-			return calculeHeuristique();
+			return calculeHeuristique() - depth;
 		}else
 		{
 			int meilleur = M_INFINITY;
@@ -195,12 +138,12 @@ public class NegaMaxPrudTranspositionTable extends NegaMaxPrud {
 			for (Long move : coups) {
 				
 				NegaMaxPrudTranspositionTable nmp = new NegaMaxPrudTranspositionTable(this);
-				nmp.MakeMvtAndUpdate(move);
+				nmp.MakeMvtAndUpdate(move,false);
 				nmp.inverse();
 				
 				
-				int val = -nmp.NegaMax(-beta, -alpha, depth-1);
-
+				int val = -nmp.NegaMax(-beta, -alpha, depth+1);
+//				--lvlparcouru;
 				
 				if(val>meilleur)
 				{
@@ -208,20 +151,11 @@ public class NegaMaxPrudTranspositionTable extends NegaMaxPrud {
 					
 					if(meilleur > alpha)
 					{
-						alpha = val;
+						alpha = val;					
 						
-						this.bestMoveAdv = nmp.bestMove;
-						
-						this.bestMove = move;
-						
-//						this.lvlMax_heuristique = nmp.lvlMin_heuristique;
-//						this.lvlMin_heuristique = nmp.lvlMax_heuristique;
-							
-						
-						
-						if(alpha>=beta){
-							
-							return beta;
+						if(alpha>=beta)
+						{
+							return meilleur;
 						}
 					}	
 				}
@@ -229,17 +163,33 @@ public class NegaMaxPrudTranspositionTable extends NegaMaxPrud {
 			
 			
 			
-			tdt =tableDeTransposition.get(key);
+			tdt =tableDeTransposition.get(firstKey);
+			
+			int meilleurReel = meilleur == PARTIE_PERDU?meilleur+depth:meilleur-depth;
+			
+			meilleurReel *= whitePions?1:-1;
 			
 			if(tdt == null)
 			{
-				BestPathState bps = new BestPathState(mPions,mPionsAdv, meilleur, this.bestMove,this.bestMoveAdv, depth);
-				tableDeTransposition.put(key,bps);
-			}else if(tdt.getDepth()<depth){
-				BestPathState bps = new BestPathState(mPions,mPionsAdv, meilleur, this.bestMove,this.bestMoveAdv, depth);
-				tableDeTransposition.put(key,bps);
-			}
+				bps = new BestPathState(mPions,mPionsAdv, meilleurReel, depth);
 				
+				HashMap<Long, BestPathState> hm = new HashMap<Long, NegaMaxPrudTranspositionTable.BestPathState>();
+				hm.put(secondKey, bps);
+				tableDeTransposition.put(firstKey, hm);
+				
+			}else{
+				
+				bps = tdt.get(secondKey);
+				
+				if(bps == null)
+					tdt.put(secondKey, new BestPathState(mPions,mPionsAdv, meilleurReel, depth));
+				else				
+					if(depth < bps.depth){
+						bps.meilleurNegaMax = meilleurReel;
+					}
+			}
+			
+			
 			return meilleur;
 		}
 		
@@ -249,59 +199,83 @@ public class NegaMaxPrudTranspositionTable extends NegaMaxPrud {
 	protected int FirstNegaMax(int alpha, int beta, int depth){
 		
 		int partieTerm = checkPartieTerm();
-		if(partieTerm != PARTIE_NON_TERMINEE){
+		if(partieTerm == PARTIE_GAGNE){
 			++nbfeuilles;
-			return partieTerm;
-		}else if (depth == 0){
+			return PARTIE_GAGNE - depth;
+		}else if(partieTerm == PARTIE_PERDU){
 			++nbfeuilles;
-			return this.calculeHeuristique();
+			return PARTIE_GAGNE + depth;
 		}else
 		{
 			int meilleur = M_INFINITY;
 			
 			ArrayList<Long> coups = generatePossibleMvt();
 			
+			this.bestMove = coups.get(0);
+			
 			for (Long move : coups) {
-				if(move!= this.precedentMove)
+
+				NegaMaxPrudTranspositionTable nmp = new NegaMaxPrudTranspositionTable(this);
+				nmp.MakeMvtAndUpdate(move,false);
+				nmp.inverse();
+				
+				
+				int val = -nmp.NegaMax(-beta, -alpha, depth+1);
+				
+//				--lvlparcouru;
+				if(val>meilleur)
 				{
-					NegaMaxPrud nmp = new NegaMaxPrud(this);
-					nmp.MakeMvtAndUpdate(move);
-					nmp.inverse();
+					meilleur = val;
+
+					this.bestMove = move;
 					
-					
-					int val = -nmp.NegaMax(-beta, -alpha, depth-1);
-					
-					if(val>meilleur)
+					if(meilleur > alpha)
 					{
-						meilleur = val;
+						alpha = val;
 						
-						if(meilleur > alpha)
+						if(alpha>=beta)
 						{
-							alpha = val;
-							
-							
-							if(alpha>=beta)
-								return beta;
-							else
-							{
-								this.bestMoveAdv = nmp.bestMove;
-								
-								this.bestMove = move;
-							}
-						}	
-					}
+							return meilleur;
+						}
+					}	
 				}
 			}
+				
+			int firstKey = whitePions?nbMPions<<3+nbPionsAdv:nbPionsAdv<<3+nbMPions;
 			
-			this.bestMove = precedentMove;
+			Long secondKey = mPions|mPionsAdv;
+				
+			HashMap<Long, BestPathState> tdt = tableDeTransposition.get(firstKey);
 			
+			BestPathState bps = null;
+			
+			int meilleurReel = meilleur == PARTIE_PERDU?meilleur+depth+1:meilleur-depth-1;
+			
+			if(tdt == null)
+			{
+				bps = new BestPathState(mPions,mPionsAdv, meilleurReel, depth);
+				
+				HashMap<Long, BestPathState> hm = new HashMap<Long, NegaMaxPrudTranspositionTable.BestPathState>();
+				hm.put(secondKey, bps);
+				tableDeTransposition.put(firstKey, hm);
+				
+			}else{
+				
+				bps = tdt.get(secondKey);
+				
+				if(bps == null)
+					tdt.put(secondKey, new BestPathState(mPions,mPionsAdv, meilleurReel, depth));
+				else				
+					if(depth < bps.depth){
+						bps.meilleurNegaMax = meilleurReel;
+					}
+			}
+				
 			return meilleur;
 		}
 	}
-
-	protected static int nbEntryTransReuse=0;
 	
-	public long getBestMove(int maxlvl) {
+	public long getBestMove() {
 		
 		nbEntryTransReuse = 0;
 		
@@ -323,36 +297,20 @@ public class NegaMaxPrudTranspositionTable extends NegaMaxPrud {
 			
 			nbFirstCoupAleatoire--;
 			
-//		}else if(bestMove != 0L){
-//			
-//			NegaMaxPrudTranspositionTable g = new NegaMaxPrudTranspositionTable(this);
-//			
-//			g.MakeMvtAndUpdate(bestMove);
-//			g.coupAdvAndUpdate(this.bestMoveAdv, false);
-//			
-//			g.lvlMax_heuristique = this.lvlMax_heuristique;
-//			g.lvlMin_heuristique = this.lvlMin_heuristique;
-//			
-//			System.out.println("Coup précédent repris");
-//			
-//			g.calcule(M_INFINITY,P_INFINITY,maxlvl);
-//			
-		}
-		else{
+		}else{
 			
 			nbfeuilles = 0;
 			 long start = System.nanoTime();
 			 
 			 
-			heuristiqueTrouve = FirstNegaMax(M_INFINITY,P_INFINITY,maxlvl);
+			heuristiqueTrouve = FirstNegaMax(M_INFINITY,P_INFINITY,0);
 			
 			
 			 long end = System.nanoTime();
 			 float time = end - start;
 			
-			 System.out.println("NegaxTT : time " + time / 1000000 + "micro");
+			 System.out.println("Negax : time " + time / 1000000 + "micro");
 			
-			 
 			 
 		}
 		
@@ -364,25 +322,24 @@ public class NegaMaxPrudTranspositionTable extends NegaMaxPrud {
 		} 
 		
 		
-//		this.precedentMove = this.bestMove;
-		
-//		System.out.println("Feuilles parcourues  = 	" + nbfeuilles);
+//				System.out.println("Feuilles parcourues  = 	" + nbfeuilles);
 //		System.out.println("Coup Aleatoire	     = 	" + nbcoupAleatoire);
-//		System.out.println("\ntaille table de transposage     = 	" + NegaMaxPrudTranspositionTable.tableDeTransposition.size());
-//		System.out.println("	reutilisées      = 	" + nbEntryTransReuse);
+//		System.out.println("\ntaille table de transposage     = 	" + MTDFNegaMaxPrudTranspositionTable.tableDeTransposition.size());
+		System.out.println("	reutilisées      = 	" + nbEntryTransReuse);
 //		System.out.println("\nnb Moves Repris    = 	" + nbMovesRepris);
+		
 		
 		System.out.println();
 		if(heuristiqueTrouve !=-1)
 		{
 			if(heuristiqueTrouve == PARTIE_GAGNE)
 			{
-				System.out.println(" PARTIE_GAGNE lvl = " + this.lvlMax_heuristique );
+				System.out.println(" PARTIE_GAGNE" );
 				
 			}
 			else if(heuristiqueTrouve == PARTIE_PERDU)
 			{
-				System.out.println(" PARTIE_PERDU lvl = " + this.lvlMax_heuristique );
+				System.out.println(" PARTIE_PERDU" );
 			}
 			else
 			{
@@ -394,10 +351,10 @@ public class NegaMaxPrudTranspositionTable extends NegaMaxPrud {
 		
 		System.out.println();
 		
+		
 		return this.bestMove;
 	}
 
 
 	
-
 }

@@ -24,9 +24,16 @@ public abstract class Grid {// implements Runnable{
 	//Contien le nombre de bit correspondant ˆ la valuer (long) de la clŽ
 	private static final Map<Long, Integer> COMPTEUR = new HashMap<Long, Integer>(6000); //5628 mais c'est pas sžr
 
-	protected Long mPions = 0L;
-	protected Long mPionsAdv = 0L;
+	protected long mPions = 0L;
+	protected long mPionsAdv = 0L;
 
+	protected int nbMPions;
+	protected int nbPionsAdv;
+	
+	
+	protected static int lvlparcouru;
+	
+	
 	protected static int nbMovesRepris = 0;
 
 	public final static int WHITE = 1;
@@ -35,21 +42,20 @@ public abstract class Grid {// implements Runnable{
 	public char myColor;
 	public char colorAdv;
 
+	protected boolean whitePions;
+	
 	
 	protected static int nbcoupAleatoire = 0;
 	protected static int nbfeuilles = 0;
-	
-	protected int nbFirstCoupAleatoire = 2;
-	private final static int MAX_HEURISTIQUE = Integer.MAX_VALUE;
-	private final static int MIN_HEURISTIQUE = Integer.MIN_VALUE + 2;
-	private final static int NO_HEURISTIQUE = Integer.MIN_VALUE + 1;	
-	private final static int INVALIDE_HEURISTIQUE = Integer.MIN_VALUE;
-	
-	
+
+	protected static int MaxLvl = 0;
+		
 	private static final Map<Long, Long> MASK_MOVEMENT = new HashMap<Long, Long>(
 			2016);
-	
 
+//	private static final 
+
+	
 	/**
 	 * env 10 micro secondes
 	 * 
@@ -59,11 +65,11 @@ public abstract class Grid {// implements Runnable{
 
 		// long start = System.nanoTime();
 
-		this.mPions =new Long(g.mPions);
-		this.mPionsAdv =  new Long(g.mPionsAdv);
+		this.mPions =g.mPions;
+		this.mPionsAdv =  g.mPionsAdv;
 		myColor = g.myColor;
 		colorAdv = g.colorAdv;
-
+		
 		/*ArrayList<ReferencedByte> lignes = new ArrayList<ReferencedByte>(8);
 		ArrayList<ReferencedByte> columns = new ArrayList<ReferencedByte>(8);
 		ArrayList<ReferencedByte> diagR = new ArrayList<ReferencedByte>(15);
@@ -82,11 +88,12 @@ public abstract class Grid {// implements Runnable{
 		
 	}
 	
+	
 	public Grid(String str, int type, int myColor) {
 		//init();
 		int offset = 0;
-		
-		
+		int nbWhitePions =0;
+		int nbBlackPions = 0;
 		
 		Long pionsWhite = 0L;
 		Long pionsBlack = 0L;
@@ -96,11 +103,11 @@ public abstract class Grid {// implements Runnable{
 			for (char c : str.toCharArray()) {
 				if (c == '4') {
 					pionsWhite |= (long) 1 << 63 - offset;
-					
+					++nbWhitePions;
 
 				} else if (c == '2') {
 					pionsBlack |= (long) 1 << 63 - offset;
-					
+					++nbBlackPions;
 				}
 
 				++offset;
@@ -112,11 +119,11 @@ public abstract class Grid {// implements Runnable{
 			for (char c : str.toCharArray()) {
 				if (c == '1') {
 					pionsWhite |= (long) 1 << 63 - offset;
-					
+					++nbWhitePions;
 
 				} else if (c == '2') {
 					pionsBlack |= (long) 1 << 63 - offset;
-					
+					++nbBlackPions;
 				}
 
 				++offset;
@@ -131,15 +138,22 @@ public abstract class Grid {// implements Runnable{
 			mPionsAdv = pionsBlack;
 			this.myColor = 'W';
 			this.colorAdv = 'B';
+			this.nbMPions = nbWhitePions;
+			this.nbPionsAdv = nbBlackPions;
+			this.whitePions = true;
 		} else if (myColor == Grid.BLACK){
 			mPions = pionsBlack;
 			mPionsAdv = pionsWhite;
 			this.myColor = 'B';
 			this.colorAdv = 'W';
+			this.nbMPions = nbBlackPions;
+			this.nbPionsAdv = nbWhitePions;
+			this.whitePions = false;
 		}
 		
 	}
 
+	
 	public static void printBits(Long arrayBits) {
 		int i = Long.numberOfLeadingZeros(arrayBits);
 
@@ -150,10 +164,13 @@ public abstract class Grid {// implements Runnable{
 
 	}
 
+	
 	public boolean isConnected() {
 		return isConnected(mPions);
 	}
 
+	
+	
 	/**
 	 * env 400 nano secondes
 	 */
@@ -194,8 +211,6 @@ public abstract class Grid {// implements Runnable{
 	}
 
 
-	
-	
 	/**
 	 * env 5 micro-secondes
 	 * 
@@ -334,10 +349,12 @@ public abstract class Grid {// implements Runnable{
 
 	}
 
+	
 	public long getmPions() {
 		return mPions;
 	}
 
+	
 	public static void init() {
 	
 		
@@ -592,6 +609,7 @@ public abstract class Grid {// implements Runnable{
 		}
 	}
 
+	
 	public String printGame() {
 		String res = "";
 		int idx = 8;
@@ -600,7 +618,8 @@ public abstract class Grid {// implements Runnable{
 		res += 	myColor + " = Mes Pions		" + Long.toBinaryString(mPions|(1L<<63))+
 				"\n"+
 				colorAdv + " = Pions Adversaire 	" + Long.toBinaryString(mPionsAdv|(1L<<63)) +"\n";
-		res += idx+">";
+		res+="\nStrategie : " + this.getClass().getName();
+		res += "\n"+ idx+">";
 		for (int i = 63; i >= 0; --i) {
 			
 			if ((mPions & (1l << i)) != 0) {
@@ -625,12 +644,13 @@ public abstract class Grid {// implements Runnable{
 
 //	protected int heuristique;
 	
+	
 	/**
 	 * 
 	 * @param move
 	 * @return the avdPion eated 0L else
 	 */
-	public void MakeMvtAndUpdate(long move)
+	public void MakeMvtAndUpdate(long move,boolean clean)
 
 	{
 		long from = mPions & move;
@@ -638,12 +658,20 @@ public abstract class Grid {// implements Runnable{
 		long to = move ^ from;
 		
 		mPions ^= move;
-		mPionsAdv &= (-1L ^ to);
+		
+		mPionsAdv &=(-1L ^ to);
+		
+//		long mPionsAdvTmp = mPionsAdv & (-1L ^ to);
+//		
+//		if(mPionsAdvTmp != mPionsAdv)
+//			--nbPions;
+//		
+//		mPionsAdv = mPionsAdvTmp;
 	}
 
-	public void coupAdvAndUpdate(long move,boolean checkMove) {
+	public void coupAdvAndUpdate(long move,boolean clean) {
 		inverse();
-		MakeMvtAndUpdate(move);
+		MakeMvtAndUpdate(move,clean);
 		inverse();
 		
 	}
@@ -658,15 +686,13 @@ public abstract class Grid {// implements Runnable{
 		colorAdv = colorTmp;
 	}
 		//int ab;
+	abstract protected long getBestMove();
 
-	
-	
-	
-	abstract protected long getBestMove(int lvl);
+	public String getBestMoveAsString(int maxLvl) {
 
-	public String getBestMoveAsString(int lvl) {
-
-		long bestMvt = getBestMove(lvl);
+		MaxLvl = maxLvl;
+		
+		long bestMvt = getBestMove();
 
 	
 		long fromLong = mPions & bestMvt;
@@ -674,7 +700,9 @@ public abstract class Grid {// implements Runnable{
 		int from = 63 - Long.numberOfLeadingZeros(fromLong);
 		int to = 63 - Long.numberOfLeadingZeros(toLong);
 		
-		MakeMvtAndUpdate(bestMvt);
+		MakeMvtAndUpdate(bestMvt,true);
+		
+//		printGame();
 		
 		char[] res = new char[4];
 		res[0] = (char) ('A' + (7 - (from % 8)));
@@ -682,7 +710,7 @@ public abstract class Grid {// implements Runnable{
 		res[2] = (char) ('A' + (7 - (to % 8)));
 		res[3] = (char) ('1' + (to / 8));
 
-		System.out.println("" + res[0] + res[1] + res[2] + res[3]);
+//		System.out.println("" + res[0] + res[1] + res[2] + res[3]);
 	
 
 		return "" + res[0] + res[1] + res[2] + res[3];

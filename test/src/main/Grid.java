@@ -11,19 +11,20 @@ public abstract class Grid {// implements Runnable{
 	//private Stack<Stack<Long>> mStackMvts;
 	//private Stack<Grid> mStackGame;
 	
-	//les masques qui retourne tout les bits à 1 sur une même ligne en fonction de la case i, avec 0<=i<64
+	//les masques qui retourne tout les bits ÀÜ 1 sur une mÔøΩme ligne en fonction de la case i, avec 0<=i<64
 	private static final Map<Integer, Long> LOA_MASK_LINES = new HashMap<Integer, Long>(64);
 	private static final Map<Integer, Long> LOA_MASK_COLUMNS = new HashMap<Integer, Long>(64);
 	private static final Map<Integer, Long> LOA_MASK_DR = new HashMap<Integer, Long>(64);
 	private static final Map<Integer, Long> LOA_MASK_DL = new HashMap<Integer, Long>(64);
 	
 	
-	//Contien le nombre de bit correspondant à la valuer (long) de la clé
-	private static final Map<Long, Integer> COMPTEUR = new HashMap<Long, Integer>(6000); //5628 mais c'est pas sûr
+	//Contien le nombre de bit correspondant ÀÜ la valuer (long) de la cl≈Ω
+	private static final Map<Long, Integer> COMPTEUR = new HashMap<Long, Integer>(6000); //5628 mais c'est pas s≈ær
 
 	protected long mPions = 0;
 	protected long mPionsAdv = 0;
-
+	protected int mNbPions;
+	protected int mNbPionsAdv;
 
 	private static final Map<Long, Long> MASK_MOVEMENT = new HashMap<Long, Long>(
 			2016);
@@ -32,11 +33,15 @@ public abstract class Grid {// implements Runnable{
 		if(inverse){
 			this.mPions = g.mPionsAdv;
 			this.mPionsAdv = g.mPions;
+			this.mNbPions =g.mNbPionsAdv;
+			this.mNbPionsAdv = g.mNbPions;
 			coupAdvAndUpdate(mvt);
 		}
 		else{
 			this.mPions = g.mPions;
 			this.mPionsAdv = g.mPionsAdv;
+			this.mNbPions = g.mNbPions;
+			this.mNbPionsAdv = g.mNbPionsAdv;
 			MakeMvtAndUpdate(mvt);
 		}
 
@@ -68,10 +73,12 @@ public abstract class Grid {// implements Runnable{
 			if (myColor == Messages.White) {
 				mPions = pionsWhite;
 				mPionsAdv = pionsBlack;
+				
 			} else {
 				mPions = pionsBlack;
 				mPionsAdv = pionsWhite;
 			}
+			
 
 		} else {
 
@@ -93,7 +100,10 @@ public abstract class Grid {// implements Runnable{
 				mPions = mPionsAdv;
 				mPionsAdv = temp;
 			}
+			
 		}
+		mNbPions = Long.bitCount(mPions);
+		mNbPionsAdv = Long.bitCount(mPionsAdv);
 
 	}
 
@@ -170,7 +180,7 @@ public abstract class Grid {// implements Runnable{
 				
 				long movement = 0;
 				
-				int endI = i + actionLine;  // à gauche
+				int endI = i + actionLine;  // ÀÜ gauche
 				if(((1L << endI) & LOA_MASK_LINES.get(i)) != 0 && (1L << endI & mPions)==0 ){
 					movement = 1L << i | 1L << endI;
 					
@@ -178,7 +188,7 @@ public abstract class Grid {// implements Runnable{
 						possMvt.add(movement);
 					
 				}
-				endI = i - actionLine; //mvt à droite
+				endI = i - actionLine; //mvt ÀÜ droite
 				if(((1L << endI) & LOA_MASK_LINES.get(i)) != 0 && (1L << endI & mPions)==0 ){
 					movement = 1L << i | 1L << endI;
 					if((MASK_MOVEMENT.get(movement)&mPionsAdv) == 0)
@@ -246,7 +256,7 @@ public abstract class Grid {// implements Runnable{
 		
 		
 		
-		//Début génération de LOA MASKS
+		//D≈Ωbut g≈Ωn≈Ωration de LOA MASKS
 		
 		//72340172838076673L = 0000000100000001000000010000000100000001000000010000000100000001
 		for(int i = 0; i< 64; ++i){
@@ -337,10 +347,10 @@ public abstract class Grid {// implements Runnable{
 		}
 		
 		
-		//Fin génération LOA_MASKS
+		//Fin g≈Ωn≈Ωration LOA_MASKS
 		
 		
-		//Début construction du compteur
+		//D≈Ωbut construction du compteur
 		//ajout de lignes et de colonnes
 		for(long i = 0L; i <256L; ++i){
 			
@@ -522,11 +532,13 @@ public abstract class Grid {// implements Runnable{
 
 	{
 		long from = mPions & move;
-	
 		long to = move ^ from;
-		
+		long tempPionsAdv = mPionsAdv;
 		mPions ^= move;
 		mPionsAdv &= (-1L ^ to);
+		if(tempPionsAdv != mPionsAdv){
+			--mNbPionsAdv;
+		}
 	}
 
 	public void coupAdvAndUpdate(long move) {
@@ -536,10 +548,13 @@ public abstract class Grid {// implements Runnable{
 		
 	}
 
-	private void inverse() {
+	protected void inverse() {
 		long temp = mPions;
 		mPions = mPionsAdv;
 		mPionsAdv = temp;
+		int tempNb = mNbPions;
+		mNbPions = mNbPionsAdv;
+		mNbPionsAdv = tempNb;
 	}
 	
 	public static void print(){

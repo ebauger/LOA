@@ -1,6 +1,8 @@
 package main;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Stack;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -9,14 +11,15 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 
+public class StratMassBlockingNMWithThreads extends Grid {
+	
+	
 
-public class StratSimpleNegaMaxMassThreads extends Grid {
-
-	public StratSimpleNegaMaxMassThreads(String str, int type, int myColor) {
+	public StratMassBlockingNMWithThreads(String str, int type, int myColor) {
 		super(str, type, myColor);
 	}
 	
-	public StratSimpleNegaMaxMassThreads(Grid g, long mvt, boolean inverse) {
+	public StratMassBlockingNMWithThreads(Grid g, long mvt, boolean inverse) {
 		super(g, mvt, inverse);
 	}
 	
@@ -47,17 +50,26 @@ public class StratSimpleNegaMaxMassThreads extends Grid {
 		
 	}
 	
+	private int evaluateBlocking(){
+		//System.out.println(mNbPions +" "+ mNbPionsAdv);
+		int rapport = generatePossibleMvt().size()*100/(mNbPions*8);
+		inverse();
+		int rapportAdv = generatePossibleMvt().size()*100/(mNbPions*8);
+		inverse();
+		return rapport - rapportAdv;
+	}
+	
 	private int negaMax(int lvl, int lvlsDone, int alpha, int beta){
 		if(isConnected()) return Integer.MAX_VALUE-lvlsDone;
 		if(advIsConnected()) return INT_MIN_VALUE+lvlsDone;
 		if(lvl == 0){
 			
-			return massHeuristic()-lvlsDone;
+			return massHeuristic()+evaluateBlocking()-lvlsDone;
 		}
 		else{
 			ArrayList<Long> moves = generatePossibleMvt();
 			for(Long move: moves){
-				StratSimpleNegaMaxMassThreads advGrid = new StratSimpleNegaMaxMassThreads(this, move, true);
+				StratMassBlockingNMWithThreads advGrid = new StratMassBlockingNMWithThreads(this, move, true);
 				int val = -advGrid.negaMax(lvl-1, lvlsDone+1, -beta, -alpha);
 				if(val >= beta) return val;
 				if(val > alpha){ 
@@ -90,6 +102,7 @@ public class StratSimpleNegaMaxMassThreads extends Grid {
 		
 		int NB_THREADS = 3;
 		ArrayList<Long> moves = generatePossibleMvt();
+		Collections.shuffle(moves);
 		Stack<Long> stackMvts = new Stack<Long>();
 		for(long mvt: moves){
 			stackMvts.push(mvt);
@@ -110,7 +123,7 @@ public class StratSimpleNegaMaxMassThreads extends Grid {
 		    	GridWorker worker = new GridWorker(this, lvl, alpha, beta ,stackMvts.pop());
 		    	workers.add(worker);
 		    	futureResults.add(es.submit(worker));
-		    	
+		    
 		    }
 		
 		
@@ -126,7 +139,6 @@ public class StratSimpleNegaMaxMassThreads extends Grid {
 			}
 		}*/
 		// System.out.println("start "+futureResults.size()+" "+workers.size());
-		
 		boolean done = false;
 		int val = 0;
 		bigloop: while (!done) {
@@ -251,7 +263,7 @@ public class StratSimpleNegaMaxMassThreads extends Grid {
 				//{
 					ArrayList<Long> moves = grid.generatePossibleMvt();
 					for(Long move: moves){
-						StratSimpleNegaMaxMassThreads advGrid = new StratSimpleNegaMaxMassThreads(grid, move, true);
+						StratMassBlockingNMWithThreads advGrid = new StratMassBlockingNMWithThreads(grid, move, true);
 						int val = -advGrid.negaMax(lvl-1, 1, -beta, -alpha);
 						if(val >= beta){
 							/*System.out.println(-val);

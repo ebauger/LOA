@@ -1,5 +1,7 @@
 package main;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.concurrent.ExecutionException;
 
 public class Main {
@@ -18,7 +20,7 @@ public class Main {
 		
 		 Grid.init();
 		//Grid.print();
-		 /*Grid whitePlayer = new StratSimpleNegaMaxMass(
+		 /*Grid whitePlayer = new StratNMMassThreadFixed(
 				 "01111110" +
 				 "20000002" +
 				 "20000002" +
@@ -27,7 +29,7 @@ public class Main {
 				 "20000002" +
 				 "20000002" +
 				 "01111110", 1,Messages.White);
-		 Grid blackPlayer = new StratSimpleNegaMaxMassThreads(
+		 Grid blackPlayer = new StratNMMassThreadFixed(
 				 "01111110" +
 				 "20000002" +
 				 "20000002" +
@@ -36,7 +38,7 @@ public class Main {
 				 "20000002" +
 				 "20000002" +
 				 "01111110", 1,Messages.Black);*/
-		 Grid whitePlayer = new StratSimpleNegaMaxMass(
+		/* Grid whitePlayer = new StratSimpleNegaMaxMass(
 				 "01100000" +
 				 "00000000" +
 				 "00000000" +
@@ -53,8 +55,8 @@ public class Main {
 						 "00000002" +
 						 "00000000" +
 						 "00000000" +
-						 "00110000", 1,Messages.Black);
-		 whitePlayer.printGame();
+						 "00110000", 1,Messages.Black);*/
+		/* whitePlayer.printGame();
 		 loop : while(!whitePlayer.gameOver()){
 			
 			long whiteMove = whitePlayer.getBestMove(5);
@@ -68,9 +70,11 @@ public class Main {
 			whitePlayer.coupAdvAndUpdate(blackMove);
 			whitePlayer.printGame();
 		 }
-		 whitePlayer.printGame();
+		 whitePlayer.printGame();*/
 		
-		//Messages msg = new Messages();
+		Messages msg = new Messages();
+		 
+		
 		}
 
 }

@@ -86,7 +86,7 @@ public class StratSimpleNegaMaxMass extends Grid {
 		for(Long move: moves){
 			StratSimpleNegaMaxMass advGrid = new StratSimpleNegaMaxMass(this, move, true);
 			int val = -advGrid.negaMax(lvl, 0, -beta, -alpha);
-			System.out.println(val);
+			//System.out.println(val);
 			if(val == beta) return move;
 			if(val > alpha){ 
 				alpha = val;

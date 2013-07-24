@@ -21,11 +21,11 @@ public class Messages {
 
 	public void playWith(String pions, int color) {
 //		mGrid = new MTDFNegaMaxPrudTranspositionTableProgressivelvl(pions, Grid.TYPE_DECODE_SERVER, color);
-//		mGrid = new NegaMaxPrudTranspositionTable(pions, Grid.TYPE_DECODE_SERVER, color);
+		mGrid = new NegaMaxPrudTranspositionTable(pions, Grid.TYPE_DECODE_SERVER, color);
 //		mGrid = new MTDFNegaMaxPrudTranspositionTable(pions, Grid.TYPE_DECODE_SERVER, color);
 //		mGrid = new NegaMaxPrud(pions, Grid.TYPE_DECODE_SERVER, color);
 		
-		mGrid = new MultiThreadNegaMax(pions, Grid.TYPE_DECODE_SERVER, color);
+//		mGrid = new MultiThreadNegaMax(pions, Grid.TYPE_DECODE_SERVER, color);
 		
 		//mGridTT.printGame();
 		mGrid.printGame();

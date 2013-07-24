@@ -11,7 +11,7 @@ import java.util.Map.Entry;
  * @author Charly
  *
  */
-public class NegaMaxPrud extends Grid {
+public class NegaMaxPrud extends GridSaveMvt {
 
 	
 	public final static int P_INFINITY = Integer.MAX_VALUE-1;
@@ -172,7 +172,7 @@ public class NegaMaxPrud extends Grid {
 		int sumY = 0;
 		int cpt = 0;
 		for(int i = 0; i< 64; ++i){
-			if((1L << i & mPionsAdv) != 0){
+			if((1L << i & mPions) != 0){
 				++cpt;
 				sumX += i%8;
 				sumY += i/8;

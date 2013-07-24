@@ -117,45 +117,6 @@ public abstract class GridSaveMvt extends Grid {
 		
 	}
 
-//	public void coupAdvAndUpdate(long move,boolean clean) {
-//		
-//		long from = mPionsAdv & move;
-//		
-//		long to = move ^ from;
-//		
-//		mPionsAdv ^= move;
-//		
-//
-//		long mPionsTmp = mPions & (-1L ^ to);
-//		
-//		++lvlparcouru;
-//		
-////		if(lvlparcouru >= Main.MAX_MVT_SAVE_LVL && clean)
-////			if(!moves.get(nbPionsAdv-1).isEmpty())
-////				 if(!moves.get(nbPionsAdv-1).get(nbMPions-1).isEmpty())
-////					 if(!moves.get(nbPionsAdv-1).get(nbMPions-1).get(lvlparcouru%(Main.MAX_MVT_SAVE_LVL)).isEmpty())
-////						 moves.get(nbPionsAdv-1).get(nbMPions-1).get(lvlparcouru%Main.MAX_MVT_SAVE_LVL).clear();
-////		
-//		if(mPionsTmp != mPions)
-//		{
-//			--nbMPions;
-////			if(clean)
-////			{
-////				for (HashMap<Long, ArrayList<Long>> hs : moves.get(nbPionsAdv-1).get(nbMPions-1)) {
-////					hs.clear();
-////				} 
-////			}
-//		}
-//		
-//		
-//
-//		mPions = mPionsTmp;
-//		
-//		
-//		
-//		
-//	}
-
 	@Override
 	protected void inverse() {
 		super.inverse();

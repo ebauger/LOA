@@ -190,8 +190,15 @@ public class NegaMaxPrud extends GridSaveMvt {
 			
 		}
 					
-		heuristique = MAX_HEURISTIQUE - mheuristique;
+		heuristique = 100000 - mheuristique;
 			
+		
+		
+		heuristique+= generatePossibleMvt().size();
+		this.inverse();
+		heuristique-= generatePossibleMvt().size();
+		
+		
 		return heuristique;
 			
 	}

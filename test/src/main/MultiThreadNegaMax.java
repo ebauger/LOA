@@ -305,33 +305,27 @@ public class MultiThreadNegaMax extends NegaMaxPrudTranspositionTable {
 						
 						int val = -mtNM.NegaMax(bestAlpha, -this.alpha, this.startDepth+1);
 						
-						if(val>this.meilleur)
-						{
-							this.meilleur = val;
+						if(val>alpha)
+						{	
+							this.alpha = val;
 							
-							if(this.meilleur > alpha)
+							
+							if(this.alpha>=bestAlpha)
 							{
-								this.alpha = val;
 								
-								
-								if(this.alpha>=bestAlpha)
-								{
-									
-									break;
-								}
+								break;
+							}
 							}	
 						}
 					}
 					
 					tdt =tableDeTransposition.get(firstKey);
 					
-					int meilleurReel = meilleur == PARTIE_PERDU?meilleur+this.startDepth:meilleur-this.startDepth;
-					
-					meilleurReel *= whitePions?1:-1;
-					
+					int meilleurReel = meilleur * (whitePions?1:-1);
+										
 					if(tdt == null)
 					{
-						bps = new BestPathState(mPions,mPionsAdv, meilleurReel, this.startDepth);
+						bps = new BestPathState( meilleurReel, this.startDepth);
 						
 						HashMap<Long, BestPathState> hm = new HashMap<Long, NegaMaxPrudTranspositionTable.BestPathState>();
 						hm.put(secondKey, bps);
@@ -342,7 +336,7 @@ public class MultiThreadNegaMax extends NegaMaxPrudTranspositionTable {
 						bps = tdt.get(secondKey);
 						
 						if(bps == null)
-							tdt.put(secondKey, new BestPathState(mPions,mPionsAdv, meilleurReel, this.startDepth));
+							tdt.put(secondKey, new BestPathState(meilleurReel, this.startDepth));
 						else				
 							if(this.startDepth < bps.depth){
 								bps.meilleurNegaMax = meilleurReel;
@@ -356,10 +350,6 @@ public class MultiThreadNegaMax extends NegaMaxPrudTranspositionTable {
 				}
 			}
 		}
-		
-		
-	}
-	
-	
+
 	
 }

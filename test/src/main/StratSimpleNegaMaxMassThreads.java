@@ -8,137 +8,126 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-
-
 public class StratSimpleNegaMaxMassThreads extends Grid {
 
-	public StratSimpleNegaMaxMassThreads(String str, int type, int myColor) {
+	public StratSimpleNegaMaxMassThreads(String str, int type, boolean myColor) {
 		super(str, type, myColor);
 	}
-	
+
 	public StratSimpleNegaMaxMassThreads(Grid g, long mvt, boolean inverse) {
 		super(g, mvt, inverse);
 	}
-	
-	private int massHeuristic(){
+
+	private int massHeuristic() {
 		int sumX = 0;
 		int sumY = 0;
 		int cpt = 0;
-		
-		for(int i = 0; i< 64; ++i){
-			if((1L << i & mPions) != 0){
+
+		for (int i = 0; i < 64; ++i) {
+			if ((1L << i & mPions) != 0) {
 				++cpt;
-				sumX += i%8;
-				sumY += i/8;
+				sumX += i % 8;
+				sumY += i / 8;
 			}
-			
+
 		}
-		sumX/= cpt;
-		sumY/= cpt;
+		sumX /= cpt;
+		sumY /= cpt;
 		int gap = 0;
-		for(int i = 0; i< 64; ++i){
-			if((1L << i & mPions) != 0){
-				gap += Math.pow(sumX- i%8, 2) + Math.pow(sumY- i/8, 2);
+		for (int i = 0; i < 64; ++i) {
+			if ((1L << i & mPions) != 0) {
+				gap += Math.pow(sumX - i % 8, 2) + Math.pow(sumY - i / 8, 2);
 			}
-			
+
 		}
-		
-		return 1000000-gap;
-		
+
+		return 1000000 - gap;
+
 	}
-	
-	private int negaMax(int lvl, int lvlsDone, int alpha, int beta){
-		if(isConnected()) return Integer.MAX_VALUE-lvlsDone;
-		if(advIsConnected()) return INT_MIN_VALUE+lvlsDone;
-		if(lvl == 0){
-			
-			return massHeuristic()-lvlsDone;
-		}
-		else{
+
+	private int negaMax(int lvl, int lvlsDone, int alpha, int beta) {
+		if (isConnected())
+			return Integer.MAX_VALUE - lvlsDone;
+		if (advIsConnected())
+			return INT_MIN_VALUE + lvlsDone;
+		if (lvl == 0) {
+
+			return massHeuristic() - lvlsDone;
+		} else {
 			ArrayList<Long> moves = generatePossibleMvt();
-			for(Long move: moves){
-				StratSimpleNegaMaxMassThreads advGrid = new StratSimpleNegaMaxMassThreads(this, move, true);
-				int val = -advGrid.negaMax(lvl-1, lvlsDone+1, -beta, -alpha);
-				if(val >= beta) return val;
-				if(val > alpha){ 
+			for (Long move : moves) {
+				StratSimpleNegaMaxMassThreads advGrid = new StratSimpleNegaMaxMassThreads(
+						this, move, true);
+				int val = -advGrid
+						.negaMax(lvl - 1, lvlsDone + 1, -beta, -alpha);
+				if (val >= beta)
+					return val;
+				if (val > alpha) {
 					alpha = val;
-					
+
 				}
 			}
 		}
-		
-		/*function negamax(node, depth, α, β, color)
-	    if node is a terminal node or depth = 0
-	        return color * the heuristic value of node
-	    else
-	        foreach child of node
-	            val := -negamax(child, depth - 1, -β, -α, -color)
-	            if val ≥ β
-	                return val
-	            if val > α
-	                α := val
-	        return α*/
-		
+
+		/*
+		 * function negamax(node, depth, α, β, color) if node is a terminal
+		 * node or depth = 0 return color * the heuristic value of node else
+		 * foreach child of node val := -negamax(child, depth - 1, -β, -α,
+		 * -color) if val ≥ β return val if val > α α := val return α
+		 */
+
 		return alpha;
 	}
-	
-	
-	
+
 	@Override
 	protected long getBestMove(int lvl) {
-		
-		
+
 		int NB_THREADS = 3;
 		ArrayList<Long> moves = generatePossibleMvt();
 		Stack<Long> stackMvts = new Stack<Long>();
-		for(long mvt: moves){
+		for (long mvt : moves) {
 			stackMvts.push(mvt);
 		}
-		
+
 		ArrayList<Future<WorkerRes>> futureResults = new ArrayList<Future<WorkerRes>>();
 		ArrayList<GridWorker> workers = new ArrayList<GridWorker>();
-		
+
 		ExecutorService es = Executors.newFixedThreadPool(NB_THREADS);
-		
-		
+
 		long bestMvt = stackMvts.peek();
 		int alpha = INT_MIN_VALUE;
 		int beta = Integer.MAX_VALUE;
-		
-		 for(int i= 0; i < NB_THREADS && !stackMvts.isEmpty(); ++i){
-		    	
-		    	GridWorker worker = new GridWorker(this, lvl, alpha, beta ,stackMvts.pop());
-		    	workers.add(worker);
-		    	futureResults.add(es.submit(worker));
-		    	
-		    }
-		
-		
-		
-		/*for(Long move: moves){
-			StratSimpleNegaMaxMassThreads advGrid = new StratSimpleNegaMaxMassThreads(this, move, true);
-			int val = -advGrid.negaMax(lvl, 0, -beta, -alpha);
-			System.out.println(val);
-			if(val >= beta) return move;
-			if(val > alpha){ 
-				alpha = val;
-				bestMvt = move;
-			}
-		}*/
+
+		for (int i = 0; i < NB_THREADS && !stackMvts.isEmpty(); ++i) {
+
+			GridWorker worker = new GridWorker(this, lvl, alpha, beta,
+					stackMvts.pop());
+			workers.add(worker);
+			futureResults.add(es.submit(worker));
+
+		}
+
+		/*
+		 * for(Long move: moves){ StratSimpleNegaMaxMassThreads advGrid = new
+		 * StratSimpleNegaMaxMassThreads(this, move, true); int val =
+		 * -advGrid.negaMax(lvl, 0, -beta, -alpha); System.out.println(val);
+		 * if(val >= beta) return move; if(val > alpha){ alpha = val; bestMvt =
+		 * move; } }
+		 */
 		// System.out.println("start "+futureResults.size()+" "+workers.size());
-		
+
 		boolean done = false;
 		int val = 0;
 		bigloop: while (!done) {
-			
+
 			for (int idx = 0; idx < NB_THREADS; ++idx) {
 				// System.out.println(idx);
 				if (futureResults.get(idx).isDone()) {
-					//System.out.println(idx + " done");
+					// System.out.println(idx + " done");
 					try {
-						//val = -futureResults.get(idx).get();
+						// val = -futureResults.get(idx).get();
 						val = futureResults.get(idx).get().value;
-						//System.out.println(idx + "->" + val);
+						// System.out.println(idx + "->" + val);
 					} catch (InterruptedException e) {
 						System.out.println("INTERRUPTED EXCEPTION");
 						e.printStackTrace();
@@ -146,9 +135,9 @@ public class StratSimpleNegaMaxMassThreads extends Grid {
 						System.out.println("EXECUTION EXCEPTION");
 						e.printStackTrace();
 					}
-					
+
 					if (val == beta) {
-						//bestMvt = workers.get(idx).getMovement();
+						// bestMvt = workers.get(idx).getMovement();
 						try {
 							bestMvt = futureResults.get(idx).get().move;
 						} catch (InterruptedException e) {
@@ -158,14 +147,14 @@ public class StratSimpleNegaMaxMassThreads extends Grid {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
 						}
-						//System.out.println("val "+val+" >= beta "+beta);
+						// System.out.println("val "+val+" >= beta "+beta);
 						break bigloop;
 
 					}
 					if (val > alpha) {
-						//System.out.println("val "+val+" > alpha "+alpha);
+						// System.out.println("val "+val+" > alpha "+alpha);
 						alpha = val;
-						//bestMvt = workers.get(idx).getMovement();
+						// bestMvt = workers.get(idx).getMovement();
 						try {
 							bestMvt = futureResults.get(idx).get().move;
 						} catch (InterruptedException e) {
@@ -175,12 +164,13 @@ public class StratSimpleNegaMaxMassThreads extends Grid {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
 						}
-						
-						 /* for (GridWorker worker : workers) {
-						  worker.setAlpha(val);
-						 
-						  }*/
-						 
+
+						/*
+						 * for (GridWorker worker : workers) {
+						 * worker.setAlpha(val);
+						 * 
+						 * }
+						 */
 
 					}
 					if (!stackMvts.isEmpty()) {
@@ -200,11 +190,11 @@ public class StratSimpleNegaMaxMassThreads extends Grid {
 						--NB_THREADS;
 					}
 
-				}/*else if(es.isShutdown()){
-					System.out.println("shutdown");
-				}else if(es.isTerminated()){
-					System.out.println("terminated");
-				}else if(es.)*/
+				}/*
+				 * else if(es.isShutdown()){ System.out.println("shutdown");
+				 * }else if(es.isTerminated()){
+				 * System.out.println("terminated"); }else if(es.)
+				 */
 
 				// ++idx;
 			}
@@ -214,128 +204,118 @@ public class StratSimpleNegaMaxMassThreads extends Grid {
 		}
 
 		es.shutdown();
-		
-		
-		//printBits(bestMvt);
+
+		// printBits(bestMvt);
 		return bestMvt;
 	}
-	
-	private class GridWorker implements Callable<WorkerRes>{
-		  Grid grid;
-		  int lvl;
-		  int alpha;
-		  int beta;
-		  long movement;
-		 
-		  GridWorker(Grid grid, int lvl, int alpha, int beta, long mvt) {
-			  this.grid = new StratMass1(grid,mvt,true);
-			  this.alpha = -beta; // alpha;
-			  this.beta =-alpha;// beta;
-			  this.lvl = lvl;
-			  this.movement = mvt;
-		  }
-		  
-		 /* public long getMovement(){
-			  return movement;
-		  }*/
-		  /*public void setAlpha(int alpha){
-			  this.alpha = alpha;
-		  }*/
-		
-		  public WorkerRes call() {
-			  /*if(grid.isConnected()) return Integer.MAX_VALUE;
-				if(grid.advIsConnected()) return INT_MIN_VALUE;
-				if(lvl == 0){
-					return massHeuristic();
-				}*/
-				//{
-					ArrayList<Long> moves = grid.generatePossibleMvt();
-					for(Long move: moves){
-						StratSimpleNegaMaxMassThreads advGrid = new StratSimpleNegaMaxMassThreads(grid, move, true);
-						int val = -advGrid.negaMax(lvl-1, 1, -beta, -alpha);
-						if(val >= beta){
-							/*System.out.println(-val);
-							printBits(movement);
-							return val;*/
-							return new WorkerRes(-val, movement);
-						}
-						if(val > alpha){ 
-							alpha = val;
-							
-						}
-					}
-				//}
-				
-				/*function negamax(node, depth, α, β, color)
-			    if node is a terminal node or depth = 0
-			        return color * the heuristic value of node
-			    else
-			        foreach child of node
-			            val := -negamax(child, depth - 1, -β, -α, -color)
-			            if val ≥ β
-			                return val
-			            if val > α
-			                α := val
-			        return α*/
-				/*System.out.println(-alpha);
-				printBits(movement);
-				return alpha;*/
-				return new WorkerRes(-alpha, movement);
+
+	private class GridWorker implements Callable<WorkerRes> {
+		Grid grid;
+		int lvl;
+		int alpha;
+		int beta;
+		long movement;
+
+		GridWorker(Grid grid, int lvl, int alpha, int beta, long mvt) {
+			this.grid = new StratMass1(grid, mvt, true);
+			this.alpha = -beta; // alpha;
+			this.beta = -alpha;// beta;
+			this.lvl = lvl;
+			this.movement = mvt;
+		}
+
+		/*
+		 * public long getMovement(){ return movement; }
+		 */
+		/*
+		 * public void setAlpha(int alpha){ this.alpha = alpha; }
+		 */
+
+		public WorkerRes call() {
+			/*
+			 * if(grid.isConnected()) return Integer.MAX_VALUE;
+			 * if(grid.advIsConnected()) return INT_MIN_VALUE; if(lvl == 0){
+			 * return massHeuristic(); }
+			 */
+			// {
+			ArrayList<Long> moves = grid.generatePossibleMvt();
+			for (Long move : moves) {
+				StratSimpleNegaMaxMassThreads advGrid = new StratSimpleNegaMaxMassThreads(
+						grid, move, true);
+				int val = -advGrid.negaMax(lvl - 1, 1, -beta, -alpha);
+				if (val >= beta) {
+					/*
+					 * System.out.println(-val); printBits(movement); return
+					 * val;
+					 */
+					return new WorkerRes(-val, movement);
+				}
+				if (val > alpha) {
+					alpha = val;
+
+				}
+			}
+			// }
+
+			/*
+			 * function negamax(node, depth, α, β, color) if node is a
+			 * terminal node or depth = 0 return color * the heuristic value of
+			 * node else foreach child of node val := -negamax(child, depth - 1,
+			 * -β, -α, -color) if val ≥ β return val if val > α α := val
+			 * return α
+			 */
+			/*
+			 * System.out.println(-alpha); printBits(movement); return alpha;
+			 */
+			return new WorkerRes(-alpha, movement);
 		}
 	}
-	
+
 	private class WorkerRes {
-	    private int value;
-	    private long move;
+		private int value;
+		private long move;
 
-	    private WorkerRes(int first, long second) {
-	    	super();
-	    	this.value = first;
-	    	this.move = second;
-	    }
+		private WorkerRes(int first, long second) {
+			super();
+			this.value = first;
+			this.move = second;
+		}
 
-	   /* private int hashCode() {
-	    	int hashFirst = first != null ? first.hashCode() : 0;
-	    	int hashSecond = second != null ? second.hashCode() : 0;
+		/*
+		 * private int hashCode() { int hashFirst = first != null ?
+		 * first.hashCode() : 0; int hashSecond = second != null ?
+		 * second.hashCode() : 0;
+		 * 
+		 * return (hashFirst + hashSecond) * hashSecond + hashFirst; }
+		 * 
+		 * public boolean equals(Object other) { if (other instanceof Pair) {
+		 * Pair otherPair = (Pair) other; return (( this.first ==
+		 * otherPair.first || ( this.first != null && otherPair.first != null &&
+		 * this.first.equals(otherPair.first))) && ( this.second ==
+		 * otherPair.second || ( this.second != null && otherPair.second != null
+		 * && this.second.equals(otherPair.second))) ); }
+		 * 
+		 * return false; }
+		 * 
+		 * public String toString() { return "(" + first + ", " + second + ")";
+		 * }
+		 */
 
-	    	return (hashFirst + hashSecond) * hashSecond + hashFirst;
-	    }
+		/*
+		 * public int getFirst() { return value; }
+		 */
 
-	    public boolean equals(Object other) {
-	    	if (other instanceof Pair) {
-	    		Pair otherPair = (Pair) other;
-	    		return 
-	    		((  this.first == otherPair.first ||
-	    			( this.first != null && otherPair.first != null &&
-	    			  this.first.equals(otherPair.first))) &&
-	    		 (	this.second == otherPair.second ||
-	    			( this.second != null && otherPair.second != null &&
-	    			  this.second.equals(otherPair.second))) );
-	    	}
+		/*
+		 * public void setFirst(A first) { this.first = first; }
+		 */
 
-	    	return false;
-	    }
+		/*
+		 * public long getSecond() { return move; }
+		 */
 
-	    public String toString()
-	    { 
-	           return "(" + first + ", " + second + ")"; 
-	    }*/
-
-	   /* public int getFirst() {
-	    	return value;
-	    }*/
-
-	    /*public void setFirst(A first) {
-	    	this.first = first;
-	    }*/
-
-	   /* public long getSecond() {
-	    	return move;
-	    }*/
-
-	    /*public void setSecond(B second) {
-	    	this.second = second;
-	    }*/
+		/*
+		 * public void setSecond(B second) { this.second = second; }
+		 */
 	}
 
 }

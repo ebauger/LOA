@@ -2,8 +2,8 @@ package main;
 
 public class Messages {
 
-	public final static int White = 4;
-	public final static int Black = 2;
+	//public final static int White = 4;
+	//public final static int Black = 2;
 
 	private Grid mGrid;
 	private Client mClient;
@@ -14,8 +14,9 @@ public class Messages {
 		mClient.start();
 	}
 
-	public void playWith(String pions, int color) {
-		mGrid =  new StratNMMassThreadFixed(pions, Grid.TYPE_DECODE_SERVER, color);
+	public void playWith(String pions, boolean white) {
+		mGrid = new StratNMMassThreadFixed(pions, Grid.TYPE_DECODE_SERVER,
+				white);
 
 	}
 
@@ -23,8 +24,6 @@ public class Messages {
 
 		Thread r = new Rototo(this);
 		r.start();
-
-		
 
 	}
 

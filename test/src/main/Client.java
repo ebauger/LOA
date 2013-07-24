@@ -19,7 +19,7 @@ class Client extends Thread {
 		mMessages = mess;
 
 		try {
-			//MyClient = new Socket("localhost", 8888);
+			// MyClient = new Socket("localhost", 8888);
 			MyClient = new Socket("10.196.113.15", 8888);
 			input = new BufferedInputStream(MyClient.getInputStream());
 			output = new BufferedOutputStream(MyClient.getOutputStream());
@@ -55,7 +55,7 @@ class Client extends Thread {
 					String boardValues;
 					boardValues = s.replace(" ", "");
 
-					mMessages.playWith(boardValues, Messages.White);
+					mMessages.playWith(boardValues, true);
 
 					// System.out.println("Nouvelle partie! Vous jouer blanc, entrez votre premier coup : ");
 
@@ -78,7 +78,7 @@ class Client extends Thread {
 
 					String boardValues = s.replace(" ", "");
 
-					mMessages.playWith(boardValues, Messages.Black);
+					mMessages.playWith(boardValues, false);
 
 					// String[] boardValues;
 					// boardValues = s.split(" ");

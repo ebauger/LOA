@@ -8,6 +8,7 @@ public abstract class Grid {// implements Runnable{
 	public static final int INT_MIN_VALUE = Integer.MIN_VALUE + 1;
 	private static Map<Integer, Long> MASK;
 	public static int TYPE_DECODE_SERVER = 0;
+	protected boolean playingWhite = true;
 	// private Stack<Stack<Long>> mStackMvts;
 	// private Stack<Grid> mStackGame;
 
@@ -94,7 +95,7 @@ public abstract class Grid {// implements Runnable{
 
 				++offset;
 			}
-			if (whiteColor == false) {
+			if (whiteColor) {
 
 				long temp = mPions;
 				mPions = mPionsAdv;
@@ -104,9 +105,12 @@ public abstract class Grid {// implements Runnable{
 		}
 		mNbPions = Long.bitCount(mPions);
 		mNbPionsAdv = Long.bitCount(mPionsAdv);
+		playingWhite = whiteColor;
+		
 
 	}
 
+	
 	public static void printBits(Long arrayBits) {
 		int i = Long.numberOfLeadingZeros(arrayBits);
 		String str = "";
@@ -250,9 +254,9 @@ public abstract class Grid {// implements Runnable{
 
 	}
 
-	public long getmPions() {
+	/*public long getmPions() {
 		return mPions;
-	}
+	}*/
 
 	public static void init() {
 
@@ -488,16 +492,25 @@ public abstract class Grid {// implements Runnable{
 
 	public void printGame() {
 		int idx = 8;
+		String pionsSymbol;
+		String pionsAdvSymbol;
+		if(playingWhite){
+			pionsSymbol = "[W]";
+			pionsAdvSymbol = "[B]";
+		}else{
+			pionsSymbol = "[B]";
+			pionsAdvSymbol = "[W]";
+		}
 		System.out.println("---------------------");
 		System.out.print(idx + ">");
 		long totalPions = mPions | mPionsAdv;
 		for (int i = 63; i >= 0; --i) {
 			if ((totalPions & (1l << i)) == 0) {
 				System.out.print("[ ]");
-			} else if ((mPions & (1l << i)) == 0) {
-				System.out.print("[x]");
+			} else if ((mPions & (1l << i)) !=0) {
+				System.out.print(pionsSymbol);
 			} else {
-				System.out.print("[o]");
+				System.out.print(pionsAdvSymbol);
 			}
 			if (i % 8 == 0) {
 				System.out.println();
@@ -535,15 +548,17 @@ public abstract class Grid {// implements Runnable{
 		int tempNb = mNbPions;
 		mNbPions = mNbPionsAdv;
 		mNbPionsAdv = tempNb;
+		
 	}
 
-	public static void print() {
-		printBits(MASK.get(48));
+	public  void print() {
+		/*printBits(MASK.get(48));
 		printBits(MASK.get(56));
 		printBits(MASK.get(23));
 		printBits(MASK.get(7));
 		System.out
-				.println("1000000210000002100000021000000210000002100000021000000210000002");
+				.println("1000000210000002100000021000000210000002100000021000000210000002");*/
+		printBits(mPions);
 	}
 
 	// abstract protected int getBestMove(int lvl, int lvlsDone, int alpha, int

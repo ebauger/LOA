@@ -216,7 +216,7 @@ public class StratNMMassThreadFixed extends Grid {
 		GridWorker(Grid grid, int lvl, int alpha, int beta, long mvt,
 				LinkedBlockingDeque<WorkerRes> queue) {
 			super();
-			this.grid = new StratMass1(grid, mvt, true);
+			this.grid = new StratNMMassThreadFixed(grid, mvt, true);
 			this.alpha = -beta; // alpha;
 			this.beta = -alpha;// beta;
 			this.lvl = lvl;
@@ -226,7 +226,7 @@ public class StratNMMassThreadFixed extends Grid {
 		}
 
 		void setMove(Grid grid, int alpha, int beta, long mvt) {
-			this.grid = new StratMass1(grid, mvt, true);
+			this.grid = new StratNMMassThreadFixed(grid, mvt, true);
 			this.alpha = -beta; // alpha;
 			this.beta = -alpha;// beta;
 			this.movement = mvt;

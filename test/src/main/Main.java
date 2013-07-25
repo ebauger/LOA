@@ -10,7 +10,7 @@ public class Main {
 
 	private static Messages mMessages;
 
-	public static int MAX_LVL = 6;
+	public static int MAX_LVL = 4;
 	public final static int MAX_MVT_SAVE_LVL = 3;
 	
 	/**
@@ -42,16 +42,18 @@ public class Main {
 				 "02222220";
 		 
 //		 Grid.init();
-		 GridSaveMvt.init();
+		 //GridSaveMvt.init();
+		MultiThreadNegaMaxTableFeuille.init();
+		
 		//Grid.printBits();		
 		 
 		 
 		 
 		 
-		 NegaMaxPrudTranspositionTable g = new NegaMaxPrudTranspositionTable(gridDebutPartieStandard, 1, Grid.WHITE);
-		 MAX_LVL = 6;
-		 g.getBestMoveAsString(MAX_LVL);
-		 MAX_LVL = 6;
+//		 NegaMaxPrudTranspositionTable g = new NegaMaxPrudTranspositionTable(gridDebutPartieStandard, 1, Grid.WHITE);
+//		 MAX_LVL = 6;
+//		 g.getBestMoveAsString(MAX_LVL);
+		 MAX_LVL = 4;
 //		 g.printGame();
 		 
 //		 System.out.println("Max int=" + Integer.MAX_VALUE);

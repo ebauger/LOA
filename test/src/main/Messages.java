@@ -25,14 +25,15 @@ public class Messages {
 //		mGrid = new MTDFNegaMaxPrudTranspositionTable(pions, Grid.TYPE_DECODE_SERVER, color);
 //		mGrid = new NegaMaxPrud(pions, Grid.TYPE_DECODE_SERVER, color);
 		
-		mGrid = new MultiThreadNegaMax(pions, Grid.TYPE_DECODE_SERVER, color);
+//		mGrid = new MultiThreadNegaMax(pions, Grid.TYPE_DECODE_SERVER, color);
 		
+		mGrid = new MultiThreadNegaMaxTableFeuille(pions, Grid.TYPE_DECODE_SERVER, color);
 		//mGridTT.printGame();
 		mGrid.printGame();
 		
 	}
 
-//	long start;
+	long start;
 
 	public void getCoup() {
 
@@ -40,7 +41,7 @@ public class Messages {
 		r.setPriority(10);
 		r.start();
 
-//		start = System.nanoTime();
+		start = System.nanoTime();
 
 	}
 
@@ -48,11 +49,10 @@ public class Messages {
 
 		mClient.envoieCoup(coup);
 
-//		long end = System.nanoTime();
-//		float time = end - start;
-//
-//		System.out.println("time s= " + time / 1000000000 + " mls=" + time
-//				+ 1000000 + " mcs=" + time / 1000 + " ns=" + time);
+		long end = System.nanoTime();
+		float time = end - start;
+
+		System.out.println("time " + time / 1000000 + " mili-secondes ");
 
 	}
 

@@ -49,6 +49,8 @@ public abstract class Grid {// implements Runnable{
 	protected static int nbfeuilles = 0;
 
 	protected static int MaxLvl = 0;
+	
+	protected static boolean whiteOriginColor;
 		
 	private static final Map<Long, Long> MASK_MOVEMENT = new HashMap<Long, Long>(
 			2016);
@@ -141,6 +143,7 @@ public abstract class Grid {// implements Runnable{
 			this.nbMPions = nbWhitePions;
 			this.nbPionsAdv = nbBlackPions;
 			this.whitePions = true;
+			whiteOriginColor = true;
 		} else if (myColor == Grid.BLACK){
 			mPions = pionsBlack;
 			mPionsAdv = pionsWhite;
@@ -149,6 +152,7 @@ public abstract class Grid {// implements Runnable{
 			this.nbMPions = nbBlackPions;
 			this.nbPionsAdv = nbWhitePions;
 			this.whitePions = false;
+			whiteOriginColor = false;
 		}
 		
 	}

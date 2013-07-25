@@ -4,7 +4,6 @@
 package main;
 
 import java.util.ArrayList;
-import java.util.Map.Entry;
 
 
 /**
@@ -62,11 +61,9 @@ public class NegaMaxPrud extends GridSaveMvt {
 		}else if (depth == MaxLvl)//this.lvlMax_heuristique)
 		{
 			++nbfeuilles;
-			return calculeHeuristique() - depth;
+			return calculeHeuristique() + evaluateBlocking() - depth;
 		}else
 		{
-			int meilleur = M_INFINITY;
-			
 			ArrayList<Long> coups = generatePossibleMvt();
 			
 			for (Long move : coups) {
@@ -79,11 +76,7 @@ public class NegaMaxPrud extends GridSaveMvt {
 				
 				--lvlparcouru;
 				
-				if(val>meilleur)
-				{
-					meilleur = val;
-					
-					if(meilleur > alpha)
+				if(val>alpha)
 					{
 						alpha = val;
 						
@@ -91,14 +84,14 @@ public class NegaMaxPrud extends GridSaveMvt {
 						if(alpha>=beta)
 						{
 							
-							return meilleur;
+							return alpha;
 						}
 					}	
-				}
+				
 			}
 			
 
-			return meilleur;
+			return alpha;
 		}
 		
 
@@ -117,11 +110,9 @@ public class NegaMaxPrud extends GridSaveMvt {
 			return PARTIE_PERDU + depth;
 		}else if (depth == MaxLvl){
 			++nbfeuilles;
-			return this.calculeHeuristique() - depth;
+			return this.calculeHeuristique() + evaluateBlocking() - depth;
 		}else
-		{
-			int meilleur = M_INFINITY;
-			
+		{			
 			ArrayList<Long> coups = generatePossibleMvt();
 			
 			this.bestMove = coups.get(0);
@@ -137,27 +128,23 @@ public class NegaMaxPrud extends GridSaveMvt {
 				
 				--lvlparcouru;
 				
-				if(val>meilleur)
-				{
-					meilleur = val;
-					
-					this.bestMove = move;
-					
-					if(meilleur > alpha)
+				if(val>alpha)
 					{
 						alpha = val;
 						
+						this.bestMove = move;
+						
 						if(alpha>=beta)
 						{
-							return meilleur;
+							return alpha;
 						}
 
 					}	
-				}
+				
 			}
 			
 	
-			return meilleur;
+			return alpha;
 		}
 		
 	}
@@ -196,6 +183,16 @@ public class NegaMaxPrud extends GridSaveMvt {
 			
 	}
 
+	protected int evaluateBlocking() {
+		// System.out.println(mNbPions +" "+ mNbPionsAdv);
+		
+		int rapport = generatePossibleMvt().size() * 10000 / (nbMPions * 8);
+		inverse();
+		int rapportAdv = generatePossibleMvt().size() * 10000 / (nbPionsAdv * 8);
+		inverse();
+		return rapport - rapportAdv;
+		}
+	
 	protected int checkPartieTerm() {
 		
 		int partieTerm = PARTIE_NON_TERMINEE;

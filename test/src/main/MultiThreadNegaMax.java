@@ -2,16 +2,20 @@ package main;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Stack;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import main.NegaMaxPrudTranspositionTable.BestPathState;
 
 public class MultiThreadNegaMax extends NegaMaxPrudTranspositionTable {
 
+	
+	protected static int MaxLvlThread1 = 6;
+	
+	
+	
+	
 	public MultiThreadNegaMax(MultiThreadNegaMax nmp) {
 		super(nmp);
 
@@ -41,6 +45,8 @@ public class MultiThreadNegaMax extends NegaMaxPrudTranspositionTable {
 		
 		workingGrid = this;
 		
+		nbEntryTransReuse = 0;
+		
 		ArrayList<Long> mvts = this.generatePossibleMvt();
 		
 		int partie_Term = checkPartieTerm();
@@ -54,7 +60,7 @@ public class MultiThreadNegaMax extends NegaMaxPrudTranspositionTable {
 			System.out.println("PARTIE_PERDU");
 			return 0;
 		}
-		
+				
 		movments = new Stack<Long>();
 		
 		for (Long mvt : mvts) {
@@ -94,6 +100,9 @@ public class MultiThreadNegaMax extends NegaMaxPrudTranspositionTable {
 				}
 
 		 }
+		
+		System.out.println("\ntaille table de transposage     = 	" + nbEntryTransSaved);
+		System.out.println("	reutilisées      = 	" + nbEntryTransReuse);
 		
 		
 		//System.out.println();
@@ -165,20 +174,21 @@ public class MultiThreadNegaMax extends NegaMaxPrudTranspositionTable {
 			++nbRunningThread;
 		}
 		
-		
 	}
 	
 	private synchronized static boolean checkContinue(MyThread th)
 	{
 		--nbRunningThread;
 		
-		System.out.println("End : " + Thread.currentThread().getName());
+//		System.out.println("End : " + Thread.currentThread().getName());
 		
 		if(-th.alpha > bestAlpha){
 			bestAlpha = -th.alpha;
 			
 			bestMvt = th.getPrecedentMvt();
-			System.out.println("New BestAlpha Found = " + bestAlpha +" : "+ Thread.currentThread().getName());
+//			System.out.println();
+//			System.out.println("New BestAlpha Found = " + bestAlpha +" : "+ Thread.currentThread().getName());
+//			System.out.println();
 		}
 		
 		if(movments.isEmpty())
@@ -202,7 +212,7 @@ public class MultiThreadNegaMax extends NegaMaxPrudTranspositionTable {
 		
 		th.reset(nmp, mvt, th.getStartDepth());
 		
-		System.out.println("Restart : " + Thread.currentThread().getName());
+//		System.out.println("Restart : " + Thread.currentThread().getName());
 		
 		++nbRunningThread;
 				
@@ -252,30 +262,41 @@ public class MultiThreadNegaMax extends NegaMaxPrudTranspositionTable {
 			
 			while (true) {
 
-				//System.out.println("I'm doing a loop : " + this.getName());
-				
-				
+//				System.out.println("I'm doing a loop : " + Thread.currentThread().getName() +
+//							"With:\n\talpha=" + this.alpha +" \n\tbeta: " + -bestAlpha +"\n");
 				boolean breaked = false;
 
-				int firstKey = whitePions ? nbMPions << 5 + nbPionsAdv
-						: nbPionsAdv << 5 + nbMPions;
+				int firstKey = whitePions?(nbMPions<<5)+nbPionsAdv:(nbPionsAdv<<5)+nbMPions;
+				
+				
+				
+				ConcurrentHashMap<Long, Long> tdt = tableDeTransposition.get(firstKey);
+				
 
-				Long secondKey = mPions | mPionsAdv;
-
-				HashMap<Long, BestPathState> tdt = tableDeTransposition.get(firstKey);
-
-				BestPathState bps = null;
-
-				if (tdt != null) {
-					bps = tdt.get(secondKey);
-
-					if (bps != null) {
-						if (this.startDepth >= bps.depth) {
+				if(tdt != null)
+				{
+					
+					Long secondKey = mPions|mPionsAdv;
+					
+					Long bps = tdt.get(secondKey);
+					
+					if(bps != null)
+					{
+						
+						int saveDepth = (int) (bps >> 32);
+						
+						if(this.startDepth >= saveDepth)
+						{
+							
 							nbEntryTransReuse++;
-							int meilleurTdt = (bps.meilleurNegaMax < MIN_HEURISTIQUE+ this.startDepth - bps.depth) ? MIN_HEURISTIQUE- this.startDepth: bps.meilleurNegaMax - this.startDepth+ bps.depth;
-							meilleurTdt *= whitePions ? 1 : -1;
+							
+							int saveNegaMax = (int) (bps << 0);
+									
+									
+							int meilleurTdt = (saveNegaMax < 0)?saveNegaMax+this.startDepth-saveDepth:saveNegaMax-this.startDepth + saveDepth ;
+							meilleurTdt *= whitePions?1:-1;
 							this.alpha = meilleurTdt;
-							breaked = true;
+							breaked = false;
 						}
 					}
 				}
@@ -307,6 +328,8 @@ public class MultiThreadNegaMax extends NegaMaxPrudTranspositionTable {
 
 							int val = -mtNM.NegaMax(bestAlpha, -this.alpha,	this.startDepth + 1);
 
+//							System.out.println("val=" + val +" / Beta: " + -bestAlpha +" : " + Thread.currentThread().getName());
+							
 							if (val > alpha) {
 								this.alpha = val;
 
@@ -316,36 +339,84 @@ public class MultiThreadNegaMax extends NegaMaxPrudTranspositionTable {
 								}
 							}
 							
-							System.out.println("Beta: " + bestAlpha +" : " + this.getName());
+							
 						}
 					}
 
 					if (!breaked) {
-						synchronized (tableDeTransposition) {
-							tdt = tableDeTransposition.get(firstKey);
+						if(alpha != M_INFINITY)
+						{
+							long start = System.nanoTime();
+							
+							Long secondKey = mPions|mPionsAdv;
+							
+							int meilleurReel = alpha * (whitePions?1:-1);
+							
+							synchronized (tableDeTransposition) {
+								
+//								System.out.println("I'm checking Table to insert: " + Thread.currentThread().getName());
+								
+								tdt =tableDeTransposition.get(firstKey);
+										
+								if(tdt == null)
+								{
+									ConcurrentHashMap<Long, Long> hm = new ConcurrentHashMap<Long, Long>();
+									
+									long bps = this.startDepth;
+									bps <<= 32;
+									
+									bps += meilleurReel;
 
-							int meilleurReel = this.alpha;
+									
+									hm.put(secondKey, bps);
+									
+									
+									tableDeTransposition.put(firstKey, hm);
+									
+									
+									nbEntryTransSaved++;
+									
+								}else{
+									
+									Long bps = tdt.get(secondKey);
+									
+									if(bps == null)
+									{	
+										
 
-							meilleurReel *= whitePions ? 1 : -1;
+										bps = new Long(this.startDepth);
+										
+										bps <<= 32;
+										
+										bps += meilleurReel;
 
-							if (tdt == null) {
+										
+										tdt.put(secondKey, bps);
+										nbEntryTransSaved++;
+									}
+									else	
+									{
+										int saveDepth = (int) (bps >> 32);
+										
+										if(this.startDepth < saveDepth){
+											
+											long newbps = this.startDepth;
+											newbps <<= 32;
+											
+											newbps += meilleurReel;
 
-								bps = new BestPathState(meilleurReel,this.startDepth);
+											tableDeTransposition.get(firstKey).put(secondKey, newbps);
 
-								HashMap<Long, BestPathState> hm = new HashMap<Long, NegaMaxPrudTranspositionTable.BestPathState>();
-								hm.put(secondKey, bps);
-								tableDeTransposition.put(firstKey, hm);
-
-							} else {
-
-								bps = tdt.get(secondKey);
-
-								if (bps == null)
-									tdt.put(secondKey, new BestPathState(meilleurReel, this.startDepth));
-								else if (this.startDepth < bps.depth) {
-									bps.meilleurNegaMax = meilleurReel;
-								}
+										}
+									}
+								}				
 							}
+							
+							 long end = System.nanoTime();
+							 float time = end - start;
+							
+//							 System.out.println(Thread.currentThread().getName() + " time " + time + " nano");
+							
 						}
 					}
 				}

@@ -5,7 +5,8 @@ package main;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author Charly
@@ -13,23 +14,9 @@ import java.util.HashMap;
  */
 public class NegaMaxPrudTranspositionTable extends NegaMaxPrud {
 
+	protected static int nbMoveGenerate;
 		
-	protected final static HashMap<Integer, HashMap<Long, NegaMaxPrudTranspositionTable.BestPathState>> tableDeTransposition = new HashMap<Integer, HashMap<Long, NegaMaxPrudTranspositionTable.BestPathState>>(5000);
-	
-	protected class BestPathState{
-		
-		protected int meilleurNegaMax;
-		protected int depth;
-
-		
-		public BestPathState(int meilleurNegaMax, int depth ) {
-			this.meilleurNegaMax = meilleurNegaMax;
-			this.depth = depth;
-			
-			
-		}
-
-	}
+	protected final static ConcurrentHashMap<Integer, ConcurrentHashMap<Long,Long>> tableDeTransposition = new ConcurrentHashMap<Integer, ConcurrentHashMap<Long, Long>>(5000);
 	
 	protected static int nbEntryTransReuse=0;
 	protected static int nbEntryTransSaved=0;
@@ -53,23 +40,32 @@ public class NegaMaxPrudTranspositionTable extends NegaMaxPrud {
 		
 		int firstKey = whitePions?(nbMPions<<5)+nbPionsAdv:(nbPionsAdv<<5)+nbMPions;
 		
-		Long secondKey = mPions|mPionsAdv;
 		
-		HashMap<Long, BestPathState> tdt = tableDeTransposition.get(firstKey);
 		
-		BestPathState bps = null;
+		ConcurrentHashMap<Long, Long> tdt = tableDeTransposition.get(firstKey);
 		
+
 		if(tdt != null)
 		{
-			bps = tdt.get(secondKey);
+			
+			Long secondKey = mPions|mPionsAdv;
+			
+			Long bps = tdt.get(secondKey);
 			
 			if(bps != null)
 			{
-				if(depth >= bps.depth)
+				
+				int saveDepth = (int) (bps >> 32);
+				
+				if(depth >= saveDepth)
 				{
 					
-					nbEntryTransReuse++;	
-					int meilleurTdt = (bps.meilleurNegaMax< MIN_HEURISTIQUE+depth-bps.depth)?MIN_HEURISTIQUE-depth:bps.meilleurNegaMax-depth+bps.depth ;
+					nbEntryTransReuse++;
+					
+					int saveNegaMax = (int) (bps << 0);
+							
+							
+					int meilleurTdt = (saveNegaMax < 0)?saveNegaMax+depth-saveDepth:saveNegaMax-depth + saveDepth ;
 					meilleurTdt *= whitePions?1:-1;
 					return meilleurTdt;
 				}
@@ -84,7 +80,7 @@ public class NegaMaxPrudTranspositionTable extends NegaMaxPrud {
 		}else if(partieTerm == PARTIE_PERDU){
 			++nbfeuilles;
 			return PARTIE_PERDU+depth;
-		}else if (depth == MaxLvl)//this.lvlMax_heuristique)
+		}else if (depth == (Thread.currentThread().getName().equals("pool-1-thread-1")?MultiThreadNegaMax.MaxLvlThread1:MaxLvl))//this.lvlMax_heuristique)
 		{
 			++nbfeuilles;
 			return calculeHeuristique()-depth;
@@ -93,6 +89,9 @@ public class NegaMaxPrudTranspositionTable extends NegaMaxPrud {
 			
 			ArrayList<Long> coups = generatePossibleMvt();
 			Collections.shuffle(coups);
+			
+			nbMoveGenerate += coups.size();
+			
 			for (Long move : coups) {
 				
 				NegaMaxPrudTranspositionTable nmp = new NegaMaxPrudTranspositionTable(this);
@@ -119,36 +118,77 @@ public class NegaMaxPrudTranspositionTable extends NegaMaxPrud {
 			
 			if(alpha != M_INFINITY)
 			{
+				long start = System.nanoTime();
+				
+				Long secondKey = mPions|mPionsAdv;
+				
+				int meilleurReel = alpha * (whitePions?1:-1);
+				
 				synchronized (tableDeTransposition) {
+					
 //					System.out.println("I'm checking Table to insert: " + Thread.currentThread().getName());
 					
 					tdt =tableDeTransposition.get(firstKey);
-					
-					int meilleurReel = alpha * (whitePions?1:-1);
-									
+							
 					if(tdt == null)
 					{
-						bps = new BestPathState(meilleurReel, depth);
+						ConcurrentHashMap<Long, Long> hm = new ConcurrentHashMap<Long, Long>();
 						
-						HashMap<Long, BestPathState> hm = new HashMap<Long, NegaMaxPrudTranspositionTable.BestPathState>();
+						long bps = depth;
+						bps <<= 32;
+						
+						bps += meilleurReel;
+
+						
 						hm.put(secondKey, bps);
+						
+						
 						tableDeTransposition.put(firstKey, hm);
+						
+						
 						nbEntryTransSaved++;
+						
 					}else{
 						
-						bps = tdt.get(secondKey);
+						Long bps = tdt.get(secondKey);
 						
 						if(bps == null)
 						{	
-							tdt.put(secondKey, new BestPathState(meilleurReel, depth));
+							
+
+							bps = new Long(depth);
+							
+							bps <<= 32;
+							
+							bps += meilleurReel;
+
+							
+							tdt.put(secondKey, bps);
 							nbEntryTransSaved++;
 						}
-						else				
-							if(depth < bps.depth){
-								bps.meilleurNegaMax = meilleurReel;
+						else	
+						{
+							int saveDepth = (int) (bps >> 32);
+							
+							if(depth < saveDepth){
+								
+								long newbps = depth;
+								newbps <<= 32;
+								
+								newbps += meilleurReel;
+
+								tableDeTransposition.get(firstKey).put(secondKey, newbps);
+
 							}
-					}
+						}
+					}				
 				}
+				
+				 long end = System.nanoTime();
+				 float time = end - start;
+				
+//				 System.out.println(Thread.currentThread().getName() + " time " + time + " nano");
+				
 			}
 			
 			return alpha;
@@ -173,6 +213,8 @@ public class NegaMaxPrudTranspositionTable extends NegaMaxPrud {
 			ArrayList<Long> coups = generatePossibleMvt();
 			Collections.shuffle(coups);
 			this.bestMove = coups.get(0);
+			
+			nbMoveGenerate += coups.size();
 			
 			for (Long move : coups) {
 
@@ -204,47 +246,74 @@ public class NegaMaxPrudTranspositionTable extends NegaMaxPrud {
 			if(alpha != M_INFINITY)
 			{
 				
+				int firstKey = whitePions?(nbMPions<<5)+nbPionsAdv:(nbPionsAdv<<5)+nbMPions;
 				
-					
+				ConcurrentHashMap<Long, Long> tdt = tableDeTransposition.get(firstKey);
+								
+				Long secondKey = mPions|mPionsAdv;
 				
-					int firstKey = whitePions?(nbMPions<<5)+nbPionsAdv:(nbPionsAdv<<5)+nbMPions;
+				int meilleurReel = alpha * (whitePions?1:-1);
+				
+				synchronized (tableDeTransposition) {
 					
-					Long secondKey = mPions|mPionsAdv;
-						
-					HashMap<Long, BestPathState> tdt = tableDeTransposition.get(firstKey);
+//					System.out.println("I'm checking Table to insert: " + Thread.currentThread().getName());
 					
-					BestPathState bps = null;
-					
-					int meilleurReel = alpha;
-					
+					tdt =tableDeTransposition.get(firstKey);
+							
 					if(tdt == null)
 					{
-						bps = new BestPathState(meilleurReel, depth);
+						ConcurrentHashMap<Long, Long> hm = new ConcurrentHashMap<Long, Long>();
 						
-						HashMap<Long, BestPathState> hm = new HashMap<Long, NegaMaxPrudTranspositionTable.BestPathState>();
+						long bps = depth;
+						bps <<= 32;
+						
+						bps += meilleurReel;
+
+						
 						hm.put(secondKey, bps);
+						
+						
 						tableDeTransposition.put(firstKey, hm);
+						
+						
 						nbEntryTransSaved++;
 						
 					}else{
 						
-						bps = tdt.get(secondKey);
+						Long bps = tdt.get(secondKey);
 						
 						if(bps == null)
-						{
-							tdt.put(secondKey, new BestPathState(meilleurReel, depth));
+						{	
+							
+
+							bps = new Long(depth);
+							
+							bps <<= 32;
+							
+							bps += meilleurReel;
+
+							
+							tdt.put(secondKey, bps);
 							nbEntryTransSaved++;
 						}
-						else				
-							{
-								if(depth < bps.depth){
+						else	
+						{
+							int saveDepth = (int) (bps >> 32);
+							
+							if(depth < saveDepth){
 								
-									bps.meilleurNegaMax = meilleurReel;
-									
-								}					
+								long newbps = depth;
+								newbps <<= 32;
+								
+								newbps += meilleurReel;
+
+								tableDeTransposition.get(firstKey).put(secondKey, newbps);
+
 							}
-					}
+						}
+					}				
 				}
+			}
 			
 				
 			return alpha;
@@ -254,6 +323,7 @@ public class NegaMaxPrudTranspositionTable extends NegaMaxPrud {
 	public long getBestMove() {
 		
 		nbEntryTransReuse = 0;
+		nbMoveGenerate = 0;
 		
 //		if(tableDeTransposition.size()>100000)
 //			lvl+=2;
@@ -276,18 +346,9 @@ public class NegaMaxPrudTranspositionTable extends NegaMaxPrud {
 		}else{
 			
 			nbfeuilles = 0;
-			 long start = System.nanoTime();
-			 
-			 
+			
 			heuristiqueTrouve = FirstNegaMax(M_INFINITY,P_INFINITY,0);
-			
-			
-			 long end = System.nanoTime();
-			 float time = end - start;
-			
-			 System.out.println("Negax : time " + time / 1000000 + "micro");
-			
-			 
+
 		}
 		
 		
@@ -300,8 +361,19 @@ public class NegaMaxPrudTranspositionTable extends NegaMaxPrud {
 		
 //				System.out.println("Feuilles parcourues  = 	" + nbfeuilles);
 //		System.out.println("Coup Aleatoire	     = 	" + nbcoupAleatoire);
-		System.out.println("\ntaille table de transposage     = 	" + nbEntryTransSaved);
+		
+		int tailletTrans = 0;
+		for (Entry<Integer, ConcurrentHashMap<Long, Long>> es1 : tableDeTransposition.entrySet()) {
+			
+				tailletTrans+=es1.getValue().size();
+			
+		}
+		
+		
+		
+		System.out.println("\ntaille table de transposage     = 	" + nbEntryTransSaved + " reel=" + tailletTrans);
 		System.out.println("	reutilisées      = 	" + nbEntryTransReuse);
+		System.out.println("\nnb Moves generate    = 	" + nbMoveGenerate);
 //		System.out.println("\nnb Moves Repris    = 	" + nbMovesRepris);
 		
 		

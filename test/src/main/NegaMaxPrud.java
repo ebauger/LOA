@@ -190,7 +190,7 @@ public class NegaMaxPrud extends GridSaveMvt {
 			
 		}
 					
-		heuristique = MAX_HEURISTIQUE - mheuristique;
+		heuristique = 1000 - mheuristique;
 			
 		return heuristique;
 			

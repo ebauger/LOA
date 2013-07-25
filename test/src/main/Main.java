@@ -10,7 +10,7 @@ public class Main {
 
 	private static Messages mMessages;
 
-	public final static int MAX_LVL = 4;
+	public static int MAX_LVL = 6;
 	public final static int MAX_MVT_SAVE_LVL = 3;
 	
 	/**
@@ -43,13 +43,21 @@ public class Main {
 		 
 //		 Grid.init();
 		 GridSaveMvt.init();
-		//Grid.printBits();		 
+		//Grid.printBits();		
 		 
-//		 Grid g = new MTDFNegaMaxPrudTranspositionTableProgressivelvl(gridDebutPartieStandard, 1, Grid.WHITE);
+		 
+		 
+		 
+		 NegaMaxPrudTranspositionTable g = new NegaMaxPrudTranspositionTable(gridDebutPartieStandard, 1, Grid.WHITE);
+		 MAX_LVL = 6;
+		 g.getBestMoveAsString(MAX_LVL);
+		 MAX_LVL = 6;
 //		 g.printGame();
 		 
 //		 System.out.println("Max int=" + Integer.MAX_VALUE);
 //		 System.out.println("Min int=" + Integer.MIN_VALUE);
+		 
+		 System.out.println("Pret a jouer");
 		 
 		 System.out.println("Profondeur Max = "+MAX_LVL);
 		 

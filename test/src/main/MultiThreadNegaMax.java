@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Stack;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -89,14 +90,13 @@ public class MultiThreadNegaMax extends NegaMaxPrudTranspositionTable {
 		    	  try {
 					baseThread.wait();
 				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 
 		 }
 		
 		
-		System.out.println();
+		//System.out.println();
 		if(bestAlpha !=-1)
 		{
 			if(bestAlpha == PARTIE_GAGNE)
@@ -166,30 +166,31 @@ public class MultiThreadNegaMax extends NegaMaxPrudTranspositionTable {
 		}
 		
 		
-		
 	}
 	
 	private synchronized static boolean checkContinue(MyThread th)
 	{
 		--nbRunningThread;
 		
-		if(-th.getMeilleur() > bestAlpha){
-			bestAlpha = -th.getMeilleur();
+		System.out.println("End : " + Thread.currentThread().getName());
+		
+		if(-th.alpha > bestAlpha){
+			bestAlpha = -th.alpha;
 			
 			bestMvt = th.getPrecedentMvt();
+			System.out.println("New BestAlpha Found = " + bestAlpha +" : "+ Thread.currentThread().getName());
 		}
 		
 		if(movments.isEmpty())
-		{
+		{			
+			
 			if(nbRunningThread == 0)
-			{
-				pool.shutdown();
-				
-//				System.out.println("pool ShutDown");
-				
+			{				
 				synchronized (baseThread) {
 					baseThread.notify();
 				}
+				
+				pool.shutdown();
 			}	
 			return false;
 		}
@@ -201,9 +202,10 @@ public class MultiThreadNegaMax extends NegaMaxPrudTranspositionTable {
 		
 		th.reset(nmp, mvt, th.getStartDepth());
 		
+		System.out.println("Restart : " + Thread.currentThread().getName());
+		
 		++nbRunningThread;
-		
-		
+				
 		return true;
 	}
 	
@@ -211,7 +213,6 @@ public class MultiThreadNegaMax extends NegaMaxPrudTranspositionTable {
 	{
 		
 		private int alpha;
-		private int meilleur;
 		private long precedentMvt;
 		
 		private MultiThreadNegaMax workingGrid;
@@ -223,10 +224,6 @@ public class MultiThreadNegaMax extends NegaMaxPrudTranspositionTable {
 			return startDepth;
 		}
 
-		public int getMeilleur() {
-			return meilleur;
-		}
-
 		public long getPrecedentMvt() {
 			return precedentMvt;
 		}
@@ -234,7 +231,6 @@ public class MultiThreadNegaMax extends NegaMaxPrudTranspositionTable {
 		public MyThread(MultiThreadNegaMax workingGrid,long precedentMvt,int startDepth) {
 			super();
 			this.alpha = M_INFINITY;
-			this.meilleur = M_INFINITY;
 			this.workingGrid = workingGrid;
 			this.precedentMvt = precedentMvt;
 			this.startDepth = startDepth;
@@ -243,8 +239,8 @@ public class MultiThreadNegaMax extends NegaMaxPrudTranspositionTable {
 		
 		public void reset(MultiThreadNegaMax workingGrid,long precedentMvt,int startDepth)
 		{
+			//System.out.println("I'm reseted : " + this.getName());
 			this.alpha = M_INFINITY;
-			this.meilleur = M_INFINITY;
 			this.workingGrid = workingGrid;
 			this.precedentMvt = precedentMvt;
 			this.startDepth = startDepth;
@@ -254,112 +250,119 @@ public class MultiThreadNegaMax extends NegaMaxPrudTranspositionTable {
 		public void run() 
 		{
 			
-			while(true)
-			{
+			while (true) {
+
+				//System.out.println("I'm doing a loop : " + this.getName());
 				
-				int firstKey = whitePions?nbMPions<<3+nbPionsAdv:nbPionsAdv<<3+nbMPions;
 				
-				Long secondKey = mPions|mPionsAdv;
-				
+				boolean breaked = false;
+
+				int firstKey = whitePions ? nbMPions << 5 + nbPionsAdv
+						: nbPionsAdv << 5 + nbMPions;
+
+				Long secondKey = mPions | mPionsAdv;
+
 				HashMap<Long, BestPathState> tdt = tableDeTransposition.get(firstKey);
-				
+
 				BestPathState bps = null;
-				
-				if(tdt != null)
-				{
+
+				if (tdt != null) {
 					bps = tdt.get(secondKey);
-					
-					if(bps != null)
-					{
-						if(this.startDepth >= bps.depth)
-						{
-							nbEntryTransReuse++;	
-							int meilleurTdt = bps.meilleurNegaMax;
-							meilleurTdt *= whitePions?1:-1;
-							this.meilleur = meilleurTdt == PARTIE_PERDU? meilleurTdt + this.startDepth:meilleurTdt-this.startDepth;
+
+					if (bps != null) {
+						if (this.startDepth >= bps.depth) {
+							nbEntryTransReuse++;
+							int meilleurTdt = (bps.meilleurNegaMax < MIN_HEURISTIQUE+ this.startDepth - bps.depth) ? MIN_HEURISTIQUE- this.startDepth: bps.meilleurNegaMax - this.startDepth+ bps.depth;
+							meilleurTdt *= whitePions ? 1 : -1;
+							this.alpha = meilleurTdt;
+							breaked = true;
 						}
 					}
 				}
-				
-				
-				int partieTerm = checkPartieTerm();
-				if(partieTerm == PARTIE_GAGNE){
-					++nbfeuilles;
-					this.meilleur = PARTIE_GAGNE - this.startDepth;
-				}
-				else if(partieTerm == PARTIE_PERDU){
-					++nbfeuilles;
-					this.meilleur = PARTIE_PERDU + this.startDepth;
-				}else if (this.startDepth == MaxLvl){
-					++nbfeuilles;
-					this.meilleur = calculeHeuristique() - this.startDepth;
-				}else
-				{
-				
-					ArrayList<Long> mvts = this.workingGrid.generatePossibleMvt();
-					
-					for (Long move : mvts) {
-						MultiThreadNegaMax mtNM = new MultiThreadNegaMax(this.workingGrid);
-						mtNM.MakeMvtAndUpdate(move, false);
-						mtNM.inverse();
-						
-						int val = -mtNM.NegaMax(bestAlpha, -this.alpha, this.startDepth+1);
-						
-						if(val>this.meilleur)
-						{
-							this.meilleur = val;
-							
-							if(this.meilleur > alpha)
-							{
+
+				if (!breaked) {
+					int partieTerm = checkPartieTerm();
+					if (partieTerm == PARTIE_GAGNE) {
+						++nbfeuilles;
+						breaked = true;
+						this.alpha = PARTIE_GAGNE - this.startDepth;
+					} else if (partieTerm == PARTIE_PERDU) {
+						++nbfeuilles;
+						breaked = true;
+						this.alpha = PARTIE_PERDU + this.startDepth;
+					} else if (this.startDepth == MaxLvl) {
+						++nbfeuilles;
+						breaked = true;
+						this.alpha = calculeHeuristique() - this.startDepth;
+					} else {
+
+						ArrayList<Long> mvts = this.workingGrid
+								.generatePossibleMvt();
+
+						for (Long move : mvts) {
+							MultiThreadNegaMax mtNM = new MultiThreadNegaMax(
+									this.workingGrid);
+							mtNM.MakeMvtAndUpdate(move, false);
+							mtNM.inverse();
+
+							int val = -mtNM.NegaMax(bestAlpha, -this.alpha,	this.startDepth + 1);
+
+							if (val > alpha) {
 								this.alpha = val;
-								
-								
-								if(this.alpha>=bestAlpha)
-								{
-									
+
+								if (this.alpha >= -bestAlpha) {
+									breaked = true;
 									break;
 								}
-							}	
+							}
+							
+							System.out.println("Beta: " + bestAlpha +" : " + this.getName());
 						}
 					}
-					
-					tdt =tableDeTransposition.get(firstKey);
-					
-					int meilleurReel = meilleur == PARTIE_PERDU?meilleur+this.startDepth:meilleur-this.startDepth;
-					
-					meilleurReel *= whitePions?1:-1;
-					
-					if(tdt == null)
-					{
-						bps = new BestPathState(mPions,mPionsAdv, meilleurReel, this.startDepth);
-						
-						HashMap<Long, BestPathState> hm = new HashMap<Long, NegaMaxPrudTranspositionTable.BestPathState>();
-						hm.put(secondKey, bps);
-						tableDeTransposition.put(firstKey, hm);
-						
-					}else{
-						
-						bps = tdt.get(secondKey);
-						
-						if(bps == null)
-							tdt.put(secondKey, new BestPathState(mPions,mPionsAdv, meilleurReel, this.startDepth));
-						else				
-							if(this.startDepth < bps.depth){
-								bps.meilleurNegaMax = meilleurReel;
+
+					if (!breaked) {
+						synchronized (tableDeTransposition) {
+							tdt = tableDeTransposition.get(firstKey);
+
+							int meilleurReel = this.alpha;
+
+							meilleurReel *= whitePions ? 1 : -1;
+
+							if (tdt == null) {
+
+								bps = new BestPathState(meilleurReel,this.startDepth);
+
+								HashMap<Long, BestPathState> hm = new HashMap<Long, NegaMaxPrudTranspositionTable.BestPathState>();
+								hm.put(secondKey, bps);
+								tableDeTransposition.put(firstKey, hm);
+
+							} else {
+
+								bps = tdt.get(secondKey);
+
+								if (bps == null)
+									tdt.put(secondKey, new BestPathState(meilleurReel, this.startDepth));
+								else if (this.startDepth < bps.depth) {
+									bps.meilleurNegaMax = meilleurReel;
+								}
 							}
-					}
-					
-	
-					if(!checkContinue(this)){
-						break;
+						}
 					}
 				}
+//				System.out.println("I'm checking continue: " + this.getName());
+				
+//				long start = System.nanoTime();
+				
+				if (!checkContinue(this)) {
+					break;
+				}
+				
+//				long end = System.nanoTime();
+//				float time = end - start;
+//				
+//				System.out.println("Time to check : " + time/1000 + " : " + this.getName());
 			}
 		}
-		
-		
 	}
-	
-	
 	
 }

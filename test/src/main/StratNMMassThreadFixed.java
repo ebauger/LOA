@@ -103,7 +103,7 @@ public class StratNMMassThreadFixed extends Grid {
 		}
 
 		for (int i = 0; i < NB_THREADS && !stackMvts.isEmpty(); ++i) {
-
+			
 			GridWorker worker = new GridWorker(this, lvl, INT_MIN_VALUE,
 					Integer.MAX_VALUE, stackMvts.pop(), resQueue);
 			// workers.add(worker);

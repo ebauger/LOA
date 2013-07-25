@@ -1,9 +1,9 @@
 package main;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 
 public class NMMassBlockTTWhioutThsV2 extends Grid {
@@ -123,7 +123,7 @@ public class NMMassBlockTTWhioutThsV2 extends Grid {
 		if (info != null) {  //ETAT EXISTE <- CONSULTER
 			if (info.lvl <= lvlsDone) { //ON LA TROUVE AUN NIV INFERIEUR -> LE prendre
 				++nbRepris;
-				if(lvlsDone % 2 == 1)
+				if(lvlsDone % 2 == 0)
 					return info.alpha-lvlsDone+info.lvl;
 				else
 					return -info.alpha+lvlsDone-info.lvl;
@@ -169,12 +169,12 @@ public class NMMassBlockTTWhioutThsV2 extends Grid {
 
 			// TableTransInfo info = mtabTrans.
 
-			if (lvlsDone % 2 == 1)
+			if (lvlsDone % 2 == 0)
 				setTabTrans(fkey, mPions | mPionsAdv, new TableTransInfo(alpha,
-						lvlsDone));
+						lvlsDone+1));
 			else
 				setTabTrans(fkey, mPions | mPionsAdv, new TableTransInfo(
-						-alpha, lvlsDone));
+						-alpha, lvlsDone+1));
 			return alpha;
 
 		}
@@ -186,6 +186,7 @@ public class NMMassBlockTTWhioutThsV2 extends Grid {
 	@Override
 	protected long getBestMove(int lvl) {
 		nbRepris = 0;
+		long time = System.currentTimeMillis();
 		int fkey;
 		//System.out.println(playingWhite);
 		if (playingWhite) {
@@ -195,15 +196,16 @@ public class NMMassBlockTTWhioutThsV2 extends Grid {
 		}
 		
 		ArrayList<Long> moves = generatePossibleMvt();
+		Collections.shuffle(moves);
 		long bestMvt = moves.get(0);
 		int alpha = INT_MIN_VALUE;
 		int beta = Integer.MAX_VALUE;
 		// int best = INT_MIN_VALUE;
-
+		
 		for (Long move : moves) {
 			NMMassBlockTTWhioutThsV2 advGrid = new NMMassBlockTTWhioutThsV2(this,
 					move, true);
-			int val = -advGrid.negaMax(lvl, 0, -beta, -alpha);
+			int val = -advGrid.negaMax(lvl, 1, -beta, -alpha);
 			// System.out.println(val);
 			if (val > alpha){
 				alpha = val;
@@ -222,6 +224,7 @@ public class NMMassBlockTTWhioutThsV2 extends Grid {
 		System.out.println("nb repris="+nbRepris);
 		setTabTrans(fkey, mPions | mPionsAdv, new TableTransInfo(alpha,
 				0));
+		System.out.println(System.currentTimeMillis()-time);
 		return bestMvt;
 	}
 
